@@ -1,12 +1,23 @@
 pre-commit:
   jobs:
-    - run: pnpm dlx ultracite fix
-      glob:
-        - "**/*.js"
-        - "**/*.jsx"
-        - "**/*.ts"
-        - "**/*.tsx"
-        - "**/*.json"
-        - "**/*.jsonc"
-        - "**/*.css"
+    - name: format
+      run: pnpm format
+      fail_text: "Biome format failed! Run 'pnpm format' manually if auto-fix didn't work (or fix them yourself)."
       stage_fixed: true
+      glob: "*.{js,jsx,ts,tsx,json,jsonc,css}"
+      
+    - name: lint
+      run: pnpm lint
+      fail_text: "Biome check failed! Please fix lint errors" # Failed reason which shows in terminal
+      glob: "*.{js,jsx,ts,tsx,json,jsonc,css}"
+
+    - name: check-types
+      run: pnpm check-types
+      fail_text: "TypeScript validation failed. Please fix type errors."
+      glob: "*.{ts,tsx}"
+
+pre-push:
+  jobs:
+    - name: build
+      run: pnpm build
+      fail_text: "Build failed. Please fix build errors."
