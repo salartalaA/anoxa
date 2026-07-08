@@ -1,10 +1,56 @@
-import { ActivityIcon, AtSign, Lock, Mail, User } from "lucide-react";
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ActivityIcon, AtSign, Loader2, Lock, Mail, User } from "lucide-react";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { Rule } from "@/components/rules";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import { type RegisterData, registerSchema } from "@/schemas/auth.schema";
 
-export default function register() {
+export default function Register() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    watch,
+    // setError,
+  } = useForm<RegisterData>({
+    resolver: zodResolver(registerSchema),
+  });
+
+  const onSubmit = async (data: RegisterData) => {
+    await new Promise((resolver) => setTimeout(resolver, 500));
+
+    console.log("Your data: ", data);
+  };
+
+  const password = watch("password") ?? "";
+  const username = watch("username") ?? "";
+
+  const usernameRules = {
+    length: username.length >= 5,
+    // biome-ignore lint/performance/useTopLevelRegex: Regexes are only used in this component.
+    lowercase: /^[a-z]/.test(username) || /^[a-z0-9_]+$/.test(username),
+    // biome-ignore lint/performance/useTopLevelRegex: Regexes are only used in this component.
+    validChars: /^[a-z0-9_]+$/.test(username),
+  };
+
+  const rules = {
+    length: password.length >= 8,
+    // biome-ignore lint/performance/useTopLevelRegex: Regexes are only used in this component.
+    lowercase: /[a-z]/.test(password),
+    // biome-ignore lint/performance/useTopLevelRegex: Regexes are only used in this component.
+    uppercase: /[A-Z]/.test(password),
+    // biome-ignore lint/performance/useTopLevelRegex: Regexes are only used in this component.
+    number: /\d/.test(password),
+    // biome-ignore lint/performance/useTopLevelRegex: Regexes are only used in this component.
+    special: /[^A-Za-z0-9]/.test(password),
+  };
+
   return (
     <div className="flex min-h-screen bg-linear-to-br from-background via-background to-muted/20">
       {/* COVER */}
@@ -73,7 +119,7 @@ export default function register() {
             </p>
           </div>
 
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-4">
               <div>
                 <Label htmlFor="full-name">Full Name</Label>
@@ -83,13 +129,18 @@ export default function register() {
                     className="h-10 pl-10"
                     id="full-name"
                     placeholder="John Doe"
-                    required
                     type="text"
+                    {...register("fullName")}
                   />
                 </div>
+                {errors.fullName && (
+                  <p className="mt-1 text-destructive text-sm">
+                    {errors.fullName.message}
+                  </p>
+                )}
               </div>
 
-              <div>
+              {/* <div>
                 <Label htmlFor="username">Username</Label>
                 <div className="relative mt-1.5">
                   <AtSign className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -97,13 +148,56 @@ export default function register() {
                     className="h-10 pl-10"
                     id="username"
                     placeholder="johndoe"
-                    required
                     type="text"
+                    {...register("username")}
                   />
                 </div>
                 <p className="mt-1 text-muted-foreground text-xs">
                   Only lowercase letters, numbers, and underscores
                 </p>
+                {errors.username && (
+                  <p className="mt-1 text-destructive text-sm">
+                    {errors.username.message}
+                  </p>
+                )}
+              </div> */}
+
+              <div>
+                <Label htmlFor="username">Username</Label>
+
+                <div className="relative mt-1.5">
+                  <AtSign className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+
+                  <Input
+                    className="h-10 pl-10"
+                    id="username"
+                    placeholder="johndoe"
+                    type="text"
+                    {...register("username")}
+                  />
+                </div>
+
+                {username ? (
+                  <div className="fade-in slide-in-from-top-2 mt-3 animate-in space-y-2 rounded-lg border bg-muted/30 p-3 duration-200">
+                    <Rule valid={usernameRules.length}>
+                      At least 5 characters
+                    </Rule>
+
+                    <Rule valid={usernameRules.validChars}>
+                      Only lowercase letters, numbers, and underscores
+                    </Rule>
+                  </div>
+                ) : (
+                  <p className="mt-1 text-muted-foreground text-xs">
+                    Only lowercase letters, numbers, and underscores
+                  </p>
+                )}
+
+                {errors.username && (
+                  <p className="mt-1 text-destructive text-sm">
+                    {errors.username.message}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -114,31 +208,70 @@ export default function register() {
                     className="h-10 pl-10"
                     id="email-address"
                     placeholder="name@example.com"
-                    required
                     type="email"
+                    {...register("email")}
                   />
                 </div>
+                {errors.email && (
+                  <p className="mt-1 text-destructive text-sm">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
 
               <div>
                 <Label htmlFor="password">Password</Label>
+
                 <div className="relative mt-1.5">
                   <Lock className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+
                   <Input
                     className="h-10 pl-10"
                     id="password"
                     placeholder="Create a strong password"
-                    required
                     type="password"
+                    {...register("password")}
                   />
                 </div>
-                <p className="mt-1 text-muted-foreground text-xs">
-                  Must be at least 6 characters
-                </p>
+
+                {password.length > 0 ? (
+                  <div className="fade-in slide-in-from-top-2 mt-3 animate-in space-y-2 rounded-lg border bg-muted/30 p-3 duration-200">
+                    <Rule valid={rules.length}>At least 8 characters</Rule>
+
+                    <Rule valid={rules.lowercase}>One lowercase letter</Rule>
+
+                    <Rule valid={rules.uppercase}>One uppercase letter</Rule>
+
+                    <Rule valid={rules.number}>One number</Rule>
+
+                    <Rule valid={rules.special}>One special character</Rule>
+                  </div>
+                ) : (
+                  <p className="mt-1 text-muted-foreground text-xs">
+                    Use 8+ characters with uppercase, lowercase, number, and
+                    symbol
+                  </p>
+                )}
+
+                {errors.password && (
+                  <p className="mt-1 text-destructive text-sm">
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
             </div>
-            <Button className="h-10 w-full py-2" type="submit">
-              Create Account
+            <Button
+              className={cn("h-10 w-full py-2", isSubmitting && "bg-primary")}
+              disabled={isSubmitting}
+              type="submit"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="animate-spin" /> Creating Account ...
+                </>
+              ) : (
+                "Create Account"
+              )}
             </Button>
           </form>
 

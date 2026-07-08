@@ -1,10 +1,31 @@
-import { ActivityIcon, Lock, Mail } from "lucide-react";
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ActivityIcon, Loader2, Lock, Mail } from "lucide-react";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import { type LoginData, loginSchema } from "@/schemas/auth.schema";
 
 export default function Login() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    // setError,
+  } = useForm<LoginData>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginData) => {
+    await new Promise((resolver) => setTimeout(resolver, 500));
+
+    console.log("Your data: ", data);
+  };
+
   return (
     <div className="flex min-h-screen bg-linear-to-br from-background via-background to-muted/20">
       {/* COVER */}
@@ -71,7 +92,14 @@ export default function Login() {
             </p>
           </div>
 
-          <form className="space-y-6">
+          {/* <Button className="w-full" variant={"destructive"}>
+            <AlertTriangle />
+            <div className="text-sm">
+              Invalid email or password. Please try again.
+            </div>
+          </Button> */}
+
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-4">
               <div>
                 <Label htmlFor="email-address">Email address</Label>
@@ -81,10 +109,15 @@ export default function Login() {
                     className="h-10 pl-10"
                     id="email-address"
                     placeholder="name@example.com"
-                    required
                     type="email"
+                    {...register("email")}
                   />
                 </div>
+                {errors.email && (
+                  <p className="mt-1 text-destructive text-sm">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -103,14 +136,29 @@ export default function Login() {
                     className="h-10 pl-10"
                     id="password"
                     placeholder="Enter your password"
-                    required
                     type="password"
+                    {...register("password")}
                   />
                 </div>
+                {errors.password && (
+                  <p className="mt-1 text-destructive text-sm">
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
             </div>
-            <Button className="h-10 w-full py-2" type="submit">
-              Sign in
+            <Button
+              className={cn("h-10 w-full py-2", isSubmitting && "bg-primary")}
+              disabled={isSubmitting}
+              type="submit"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="animate-spin" /> Signing in ...
+                </>
+              ) : (
+                "Sign in"
+              )}
             </Button>
           </form>
 
