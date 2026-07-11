@@ -67,7 +67,7 @@ export async function loginUser(data: LoginData) {
 
   const sessionId = crypto.randomUUID();
 
-  const expires = new Date(Date.now() + 60 * 60 * 24 * 7);
+  const expires = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
 
   await prisma.session.create({
     data: {
