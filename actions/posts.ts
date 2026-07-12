@@ -67,19 +67,34 @@ export async function getPosts() {
     return;
   }
 
-  const userId = currentUser.id;
-
-  return await prisma.post.findMany({
-    where: {
-      authorId: userId,
-    },
+  const posts = await prisma.post.findMany({
     include: {
       author: true,
+      comments: {
+        include: {
+          author: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+      likes: true,
     },
     orderBy: {
       createdAt: "desc",
     },
   });
+
+  return posts.map((post) => ({
+    ...post,
+    isOwner: post.authorId === currentUser.id,
+    isLiked: post.likes.some((like) => like.userId === currentUser.id),
+
+    comments: post.comments.map((comment) => ({
+      ...comment,
+      isOwner: comment.authorId === currentUser.id,
+    })),
+  }));
 }
 
 export async function deletePost(postId: string) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { Ellipsis, Flag } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -22,7 +23,15 @@ export function ReportPost() {
       />
       <DropdownMenuContent>
         <DropdownMenuGroup>
-          <DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() =>
+              toast.success("Post Reported to Moderators.", {
+                position: "top-right",
+                className: "bg-card! text-primary!",
+                closeButton: true,
+              })
+            }
+          >
             <Flag size={20} />
             Report
           </DropdownMenuItem>

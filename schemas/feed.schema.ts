@@ -17,10 +17,7 @@ export const postSchema = z.object({
 });
 
 export const commentSchema = z.object({
-  comment: z
-    .string()
-    .trim()
-    .min(10, "Your comment should be at least 10 characters!"),
+  comment: z.string().trim().min(4, "Comment is too short!"),
 });
 
 export type PostData = z.infer<typeof postSchema>;

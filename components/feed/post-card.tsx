@@ -1,14 +1,18 @@
 import { Rss } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { getCurrentUser } from "@/actions/auth";
 import { getPosts } from "@/actions/posts";
 import { PostActions } from "@/components/feed/post-actions";
 import { timeAgo } from "@/lib/utils/time-ago";
 import { CreatePostDialog } from "./create-post-dialog";
 import PostInteractiveButtons from "./post-interactive-buttons";
+import { ReportPost } from "./report-post";
 
 export default async function PostCard() {
   const posts = await getPosts();
+
+  const currentFullName = (await getCurrentUser())?.fullName;
 
   if (posts?.length === 0) {
     return (
@@ -48,8 +52,7 @@ export default async function PostCard() {
             </div>
           </Link>
 
-          {/* <ReportPost /> */}
-          <PostActions post={post} />
+          {post.isOwner ? <PostActions post={post} /> : <ReportPost />}
         </div>
       </div>
       <div className="p-0">
@@ -65,7 +68,15 @@ export default async function PostCard() {
         )}
       </div>
 
-      <PostInteractiveButtons />
+      <PostInteractiveButtons
+        comments={post.comments}
+        // biome-ignore lint/style/noNonNullAssertion: No problem here
+        currentFullName={currentFullName!}
+        currentUserAvatar={post.author.avatarURL ?? ""}
+        isLiked={post.isLiked}
+        likes={post.likes}
+        postId={post.id}
+      />
     </div>
   ));
 }
