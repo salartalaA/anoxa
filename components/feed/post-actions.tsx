@@ -2,6 +2,9 @@
 
 import { Ellipsis, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
+import { deletePost } from "@/actions/posts";
+import type { Post } from "@/app/generated/prisma/client";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,8 +15,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EditPostDialog } from "./edit-post-dialog";
 
-export function PostActions() {
+export function PostActions({ post }: { post: Post }) {
   const [editOpen, setEditOpen] = useState(false);
+
+  const handleDelete = async (postId: string) => {
+    await deletePost(postId);
+
+    toast.success("Post Deleted Successfully!", {
+      position: "top-right",
+      className: "bg-card! text-primary!",
+      closeButton: true,
+    });
+  };
 
   return (
     <>
@@ -36,7 +49,10 @@ export function PostActions() {
               <span className="mr-auto">Edit Post</span>
             </DropdownMenuItem>
 
-            <DropdownMenuItem variant="destructive">
+            <DropdownMenuItem
+              onClick={() => handleDelete(post.id)}
+              variant="destructive"
+            >
               <Trash2 size={20} />
               Delete Post
             </DropdownMenuItem>
@@ -45,7 +61,11 @@ export function PostActions() {
       </DropdownMenu>
 
       <div className="hidden">
-        <EditPostDialog onOpenChange={setEditOpen} open={editOpen} />
+        <EditPostDialog
+          open={editOpen}
+          post={post}
+          setOpenState={setEditOpen}
+        />
       </div>
     </>
   );

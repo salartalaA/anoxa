@@ -26,6 +26,9 @@
       "a11y": {
         "noLabelWithoutControl": "off",
         "useSemanticElements": "off"
+      },
+      "style": {
+        "noExportedImports": "off"
       }
     },
     "domains": {

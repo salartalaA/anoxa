@@ -4,7 +4,8 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 export const postSchema = z.object({
-  caption: z.string().trim().optional(),
+  id: z.string().optional(),
+  caption: z.string().trim().max(500).optional(),
   image: z
     .file()
     .refine((file) => ACCEPTED_IMAGE_TYPES.includes(file.type), {
@@ -23,4 +24,5 @@ export const commentSchema = z.object({
 });
 
 export type PostData = z.infer<typeof postSchema>;
+
 export type CommentData = z.infer<typeof commentSchema>;

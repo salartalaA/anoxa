@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { createPost } from "@/actions/posts";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -54,7 +55,7 @@ export function CreatePostDialog() {
   }, [image]);
 
   const onSubmit = async (newPost: PostData) => {
-    await new Promise((resolver) => setTimeout(resolver, 2000));
+    await createPost(newPost);
 
     setOpenState(false);
 
@@ -65,23 +66,21 @@ export function CreatePostDialog() {
       className: "bg-card! text-primary!",
       closeButton: true,
     });
-
-    console.log(newPost);
   };
 
   return (
     <Dialog onOpenChange={setOpenState} open={openState}>
-      <form id="create-post-form" onSubmit={handleSubmit(onSubmit)}>
-        <DialogTrigger
-          render={
-            <Button className="h-10 text-white">
-              <Plus size={20} />
-              Create
-            </Button>
-          }
-        />
+      <DialogTrigger
+        render={
+          <Button className="h-10 text-white">
+            <Plus size={20} />
+            Create
+          </Button>
+        }
+      />
 
-        <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px]">
+        <form id="create-post-form" onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>Create post</DialogTitle>
             <DialogDescription>
@@ -89,7 +88,7 @@ export function CreatePostDialog() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="mt-4 space-y-4">
             <div>
               <Label htmlFor="image">Photo</Label>
 
@@ -135,7 +134,6 @@ export function CreatePostDialog() {
                     <input
                       accept="image/*"
                       className="hidden"
-                      form="create-post-form"
                       id="image"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
@@ -151,23 +149,25 @@ export function CreatePostDialog() {
                   </Label>
                 )}
               </div>
+
               {errors.image && (
                 <p className="mt-1 text-destructive text-sm">
-                  {errors.image?.message}
+                  {errors.image.message}
                 </p>
               )}
             </div>
 
             <div>
               <Label htmlFor="caption">Caption</Label>
+
               <Textarea
                 className="mt-2 min-h-[100px] max-w-[452px]"
-                form="create-post-form"
                 id="caption"
                 maxLength={500}
                 onChange={(e) => setValue("caption", e.target.value)}
                 placeholder="Write a caption..."
               />
+
               <p className="mt-1 ml-auto text-right text-muted-foreground text-xs">
                 {caption.length}/500
               </p>
@@ -180,20 +180,20 @@ export function CreatePostDialog() {
             <Button
               className={isSubmitting ? "bg-primary" : ""}
               disabled={!image || isSubmitting}
-              form="create-post-form"
               type="submit"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="animate-spin" /> Creating ...
+                  <Loader2 className="animate-spin" />
+                  Creating...
                 </>
               ) : (
                 "Create post"
               )}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </form>
+        </form>
+      </DialogContent>
     </Dialog>
   );
 }

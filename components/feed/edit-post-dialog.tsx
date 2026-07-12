@@ -6,6 +6,8 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { editPost } from "@/actions/posts";
+import type { Post } from "@/app/generated/prisma/client";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,15 +23,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { type PostData, postSchema } from "@/schemas/feed.schema";
 
 interface EditPostDialogProps {
-  onOpenChange: (open: boolean) => void;
   open: boolean;
+  post: Post;
+  setOpenState: (open: boolean) => void;
 }
 
-export function EditPostDialog({ open, onOpenChange }: EditPostDialogProps) {
+export function EditPostDialog({
+  open,
+  setOpenState,
+  post,
+}: EditPostDialogProps) {
   const {
-    watch,
     handleSubmit,
     setValue,
+    watch,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<PostData>({
@@ -39,7 +46,7 @@ export function EditPostDialog({ open, onOpenChange }: EditPostDialogProps) {
   const [preview, setPreview] = useState<string | null>(null);
 
   const caption = watch("caption") ?? "";
-  const image = watch("image") ?? "";
+  const image = watch("image");
 
   useEffect(() => {
     if (!image) {
@@ -51,13 +58,18 @@ export function EditPostDialog({ open, onOpenChange }: EditPostDialogProps) {
 
     setPreview(objectUrl);
 
-    return () => URL.revokeObjectURL(objectUrl);
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
   }, [image]);
 
-  const onSubmit = async (updatedPost: PostData) => {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+  const onSubmit = async (data: PostData) => {
+    await editPost({
+      id: post.id,
+      ...data,
+    });
 
-    onOpenChange(false);
+    setOpenState(false);
 
     reset();
 
@@ -66,23 +78,19 @@ export function EditPostDialog({ open, onOpenChange }: EditPostDialogProps) {
       className: "bg-card! text-primary!",
       closeButton: true,
     });
-
-    console.log(updatedPost);
   };
 
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
-      <form id="edit-post-form" onSubmit={handleSubmit(onSubmit)}>
-        <DialogContent className="sm:max-w-[500px]">
+    <Dialog onOpenChange={setOpenState} open={open}>
+      <DialogContent className="sm:max-w-[500px]">
+        <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>Edit post</DialogTitle>
 
-            <DialogDescription>
-              Share a photo with other users
-            </DialogDescription>
+            <DialogDescription>Update your post information</DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="mt-4 space-y-4">
             <div>
               <Label htmlFor="image">Photo</Label>
 
@@ -160,9 +168,10 @@ export function EditPostDialog({ open, onOpenChange }: EditPostDialogProps) {
                 maxLength={500}
                 onChange={(e) => setValue("caption", e.target.value)}
                 placeholder="Write a caption..."
+                value={caption}
               />
 
-              <p className="mt-1 ml-auto text-right text-muted-foreground text-xs">
+              <p className="mt-1 text-right text-muted-foreground text-xs">
                 {caption.length}/500
               </p>
             </div>
@@ -171,24 +180,19 @@ export function EditPostDialog({ open, onOpenChange }: EditPostDialogProps) {
           <DialogFooter>
             <DialogClose render={<Button variant="outline">Cancel</Button>} />
 
-            <Button
-              className={isSubmitting ? "bg-primary" : ""}
-              disabled={!image || isSubmitting}
-              form="edit-post-form"
-              type="submit"
-            >
+            <Button disabled={!image || isSubmitting} type="submit">
               {isSubmitting ? (
                 <>
                   <Loader2 className="animate-spin" />
-                  Editing...
+                  Updating...
                 </>
               ) : (
                 "Edit post"
               )}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </form>
+        </form>
+      </DialogContent>
     </Dialog>
   );
 }
