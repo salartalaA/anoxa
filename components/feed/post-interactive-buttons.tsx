@@ -61,7 +61,7 @@ export default function PostInteractiveButtons({
 
     reset();
 
-    toast.success("Comment Added Successfully!", {
+    toast.success("Comment added successfully!", {
       position: "top-right",
       className: "bg-card! text-primary!",
       closeButton: true,
@@ -71,7 +71,7 @@ export default function PostInteractiveButtons({
   const handleDeleteComment = async (commentId: string) => {
     await deleteComment(commentId);
 
-    toast.success("Comment Deleted Successfully!", {
+    toast.success("Comment deleted successfully!", {
       position: "top-right",
       className: "bg-card! text-primary!",
       closeButton: true,

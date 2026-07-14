@@ -1,6 +1,7 @@
 "use server";
 
 import bcrypt from "bcryptjs";
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
 import type { LoginData, RegisterData } from "@/schemas/auth.schema";
@@ -115,7 +116,13 @@ export async function getCurrentUser() {
   }
 
   if (session.expiresAt < new Date()) {
-    return null;
+    await prisma.session.deleteMany({
+      where: {
+        id: session.id,
+      },
+    });
+
+    return;
   }
 
   return session.user;
@@ -127,7 +134,7 @@ export async function logout() {
   const sessionId = cookieStore.get("session")?.value;
 
   if (sessionId) {
-    await prisma.session.delete({
+    await prisma.session.deleteMany({
       where: {
         id: sessionId,
       },
@@ -135,4 +142,26 @@ export async function logout() {
   }
 
   cookieStore.delete("session");
+}
+
+export async function deleteAccount(userId: string) {
+  const currentUser = await getCurrentUser();
+
+  if (!currentUser) {
+    return;
+  }
+
+  const hasPermission = currentUser.id === userId;
+
+  if (!hasPermission) {
+    return;
+  }
+
+  await prisma.user.delete({
+    where: {
+      id: currentUser.id,
+    },
+  });
+
+  revalidatePath("/auth/register");
 }

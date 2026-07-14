@@ -29,11 +29,16 @@ export async function deleteComment(commentId: string) {
     return;
   }
 
-  await prisma.comment.delete({
+  const result = await prisma.comment.deleteMany({
     where: {
       id: commentId,
+      authorId: currentUser.id,
     },
   });
+
+  if (result.count === 0) {
+    return;
+  }
 
   revalidatePath("/");
 }

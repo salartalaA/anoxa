@@ -4,7 +4,7 @@ export const registerSchema = z.object({
   fullName: z
     .string()
     .trim()
-    .min(5, "Full name must be at least 5 characters."),
+    .min(3, "Full name must be at least 3 characters."),
   username: z
     .string()
     .trim()
@@ -34,6 +34,22 @@ export const loginSchema = z.object({
   password: z.string().trim().min(8, "Password must be at least 8 characters."),
 });
 
+export const editProfileSchema = z.object({
+  fullName: z
+    .string()
+    .trim()
+    .min(3, "Full name must be at least 3 characters."),
+  bio: z.string().trim().max(240).optional(),
+  avatarURL: z
+    .url("Please enter a valid avatar url!")
+    .trim()
+    .min(15, "Avatar url must be at least 15 characters.")
+    .or(z.literal(""))
+    .optional(),
+});
+
 export type LoginData = z.infer<typeof loginSchema>;
 
 export type RegisterData = z.infer<typeof registerSchema>;
+
+export type EditProfileData = z.infer<typeof editProfileSchema>;

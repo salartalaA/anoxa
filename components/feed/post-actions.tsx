@@ -21,7 +21,7 @@ export function PostActions({ post }: { post: Post }) {
   const handleDelete = async (postId: string) => {
     await deletePost(postId);
 
-    toast.success("Post Deleted Successfully!", {
+    toast.success("Post deleted successfully!", {
       position: "top-right",
       className: "bg-card! text-primary!",
       closeButton: true,

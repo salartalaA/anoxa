@@ -43,6 +43,17 @@ export async function editPost(updatedPost: PostData) {
     return;
   }
 
+  const post = await prisma.post.findFirst({
+    where: {
+      id: updatedPost.id,
+      authorId: currentUser.id,
+    },
+  });
+
+  if (!post) {
+    return;
+  }
+
   const uploadedImage = await uploadImage(updatedPost.image);
 
   await prisma.post.update({

@@ -25,7 +25,7 @@ export function ReportPost() {
         <DropdownMenuGroup>
           <DropdownMenuItem
             onClick={() =>
-              toast.success("Post Reported to Moderators.", {
+              toast.success("Post reported to moderators.", {
                 position: "top-right",
                 className: "bg-card! text-primary!",
                 closeButton: true,

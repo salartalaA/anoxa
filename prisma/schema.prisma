@@ -21,6 +21,7 @@ model User {
 
   avatarURL               String?
   bio                     String?
+  isVerified              Boolean     @default(false)
 
   status                  Status      @default(ACTIVE)
 

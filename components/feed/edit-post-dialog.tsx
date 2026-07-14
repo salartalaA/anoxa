@@ -73,7 +73,7 @@ export function EditPostDialog({
 
     reset();
 
-    toast.success("Post Updated Successfully!", {
+    toast.success("Post updated successfully!", {
       position: "top-right",
       className: "bg-card! text-primary!",
       closeButton: true,

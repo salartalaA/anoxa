@@ -36,10 +36,22 @@ export default async function PostCard() {
     >
       <div className="flex flex-col space-y-1.5 p-6 pb-3">
         <div className="flex items-start justify-between">
-          <Link className="group flex items-center gap-3" href="/profile/salar">
+          <Link
+            className="group flex items-center gap-3"
+            href={`/profile/${post.author.username}`}
+          >
             <span className="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full border">
               <span className="flex h-full w-full items-center justify-center rounded-full bg-muted text-sm">
-                {post.author.avatarURL ?? post.author.fullName.charAt(0)}
+                {post.author.avatarURL ? (
+                  <Image
+                    alt="user profile"
+                    className="rounded-full object-cover"
+                    fill
+                    src={post.author.avatarURL}
+                  />
+                ) : (
+                  post.author.fullName.charAt(0)
+                )}
               </span>
             </span>
             <div>
