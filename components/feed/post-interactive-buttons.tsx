@@ -6,6 +6,7 @@ import {
   Heart,
   Loader2,
   MessageSquare,
+  Pencil,
   Share2,
   Trash2,
 } from "lucide-react";
@@ -13,7 +14,11 @@ import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { createComment, deleteComment } from "@/actions/comments";
+import {
+  createComment,
+  deleteComment,
+  updateComment,
+} from "@/actions/comments";
 import { toggleLike } from "@/actions/likes";
 import type { Like, Prisma } from "@/app/generated/prisma/client";
 import { Button } from "@/components/ui/button";
@@ -46,26 +51,43 @@ export default function PostInteractiveButtons({
   likes: Like[];
 }) {
   const [showComment, setShowComment] = useState(false);
+  const [isCommentEditing, setIsCommentEditing] = useState<{
+    id: string;
+    comment: string;
+  } | null>(null);
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CommentData>({
     resolver: zodResolver(commentSchema),
   });
 
-  const onSubmit = async (newComment: CommentData) => {
-    await createComment(newComment.comment, postId);
+  const onSubmit = async (comment: CommentData) => {
+    if (isCommentEditing) {
+      await updateComment(comment.content, isCommentEditing.id);
+
+      toast.success("Comment edited successfully!", {
+        position: "top-right",
+        className: "bg-card! text-primary!",
+        closeButton: true,
+      });
+    } else {
+      await createComment(comment.content, postId);
+
+      toast.success("Comment added successfully!", {
+        position: "top-right",
+        className: "bg-card! text-primary!",
+        closeButton: false,
+      });
+    }
+
+    setIsCommentEditing(null);
 
     reset();
-
-    toast.success("Comment added successfully!", {
-      position: "top-right",
-      className: "bg-card! text-primary!",
-      closeButton: true,
-    });
   };
 
   const handleDeleteComment = async (commentId: string) => {
@@ -143,31 +165,58 @@ export default function PostInteractiveButtons({
                   </span>
 
                   <div className="flex flex-1 flex-col">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm">
-                        {comment.author.fullName}
-                      </span>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-sm">
+                          {comment.author.fullName}
+                        </span>
 
-                      <span className="text-muted-foreground text-xs">
-                        @{comment.author.username}
-                      </span>
+                        <span className="text-muted-foreground text-xs">
+                          @{comment.author.username}
+                        </span>
 
-                      <span className="text-muted-foreground text-xs">•</span>
+                        <span className="text-muted-foreground text-xs">•</span>
 
-                      <span className="text-muted-foreground text-xs">
-                        {timeAgo(comment.createdAt)}
-                      </span>
+                        <span className="text-muted-foreground text-xs">
+                          {timeAgo(comment.createdAt)}
+                        </span>
+
+                        {comment.isEdited && (
+                          <>
+                            <span className="text-muted-foreground text-xs">
+                              •
+                            </span>
+
+                            <span className="text-muted-foreground text-xs">
+                              edited
+                            </span>
+                          </>
+                        )}
+                      </div>
 
                       {comment.isOwner && (
-                        <Trash2
-                          className="ml-auto text-destructive"
-                          onClick={() => handleDeleteComment(comment.id)}
-                          size={18}
-                        />
+                        <div className="flex items-center gap-x-2">
+                          <Pencil
+                            className="text-primary"
+                            onClick={() => {
+                              setIsCommentEditing({
+                                id: comment.id,
+                                comment: comment.content,
+                              });
+                              setValue("content", comment.content);
+                            }}
+                            size={15}
+                          />
+                          <Trash2
+                            className="text-destructive"
+                            onClick={() => handleDeleteComment(comment.id)}
+                            size={18}
+                          />
+                        </div>
                       )}
                     </div>
 
-                    <p className="mt-1 text-sm leading-relaxed">
+                    <p className="mt-1 text-start text-sm leading-relaxed">
                       {comment.content}
                     </p>
                     {/* 
@@ -212,25 +261,53 @@ export default function PostInteractiveButtons({
                 className="min-h-9 max-w-[486px]"
                 placeholder="Write a comment..."
                 rows={1}
-                {...register("comment")}
+                {...register("content")}
+                defaultValue={isCommentEditing?.comment ?? ""}
               />
 
-              <Button disabled={isSubmitting} type="submit">
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="animate-spin" />
-                    Commenting...
-                  </>
+              {isCommentEditing && (
+                <Button
+                  onClick={() => {
+                    setIsCommentEditing(null);
+                    reset();
+                  }}
+                  variant="destructive"
+                >
+                  Cancel
+                </Button>
+              )}
+
+              <div>
+                {isCommentEditing ? (
+                  <Button disabled={isSubmitting} type="submit">
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="animate-spin" />
+                        Editing...
+                      </>
+                    ) : (
+                      "Edit"
+                    )}
+                  </Button>
                 ) : (
-                  "Comment"
+                  <Button disabled={isSubmitting} type="submit">
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="animate-spin" />
+                        Commenting...
+                      </>
+                    ) : (
+                      "Comment"
+                    )}
+                  </Button>
                 )}
-              </Button>
+              </div>
             </div>
           </div>
 
-          {errors.comment && (
+          {errors.content && (
             <p className="mt-1 text-destructive text-sm">
-              {errors.comment.message}
+              {errors.content.message}
             </p>
           )}
         </form>

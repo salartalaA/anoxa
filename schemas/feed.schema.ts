@@ -17,7 +17,8 @@ export const postSchema = z.object({
 });
 
 export const commentSchema = z.object({
-  comment: z.string().trim().min(4, "Comment is too short!"),
+  id: z.string().optional(),
+  content: z.string().trim().min(4, "Comment is too short!"),
 });
 
 export type PostData = z.infer<typeof postSchema>;

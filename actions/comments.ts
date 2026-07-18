@@ -42,3 +42,31 @@ export async function deleteComment(commentId: string) {
 
   revalidatePath("/");
 }
+
+export async function updateComment(
+  updatedCommentContent: string,
+  updatedCommentId: string
+) {
+  const currentUser = await getCurrentUser();
+
+  if (!currentUser) {
+    return;
+  }
+
+  const result = await prisma.comment.update({
+    data: {
+      content: updatedCommentContent,
+      isEdited: true,
+    },
+    where: {
+      id: updatedCommentId,
+      authorId: currentUser.id,
+    },
+  });
+
+  if (!result) {
+    return;
+  }
+
+  revalidatePath("/");
+}
