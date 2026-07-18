@@ -33,69 +33,71 @@ export default async function BookmarkPage() {
       </header>
 
       {bookmarkedPosts.length > 0 ? (
-        bookmarkedPosts.map((post) => (
-          <div
-            className="overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-200"
-            key={post.id}
-          >
-            <div className="flex flex-col space-y-1.5 p-6 pb-3">
-              <div className="flex items-start justify-between">
-                <Link
-                  className="group flex items-center gap-3"
-                  href={`/profile/${post.author.username}`}
-                >
-                  <span className="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full border">
-                    <span className="flex h-full w-full items-center justify-center rounded-full bg-muted text-sm">
-                      {post.author.avatarURL ? (
-                        <Image
-                          alt="user profile"
-                          className="rounded-full object-cover"
-                          fill
-                          src={post.author.avatarURL}
-                        />
-                      ) : (
-                        post.author.fullName.charAt(0)
-                      )}
+        <div className="space-y-6">
+          {bookmarkedPosts.map((post) => (
+            <div
+              className="overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-200"
+              key={post.id}
+            >
+              <div className="flex flex-col gap-y-1.5 p-6 pb-3">
+                <div className="flex items-start justify-between">
+                  <Link
+                    className="group flex items-center gap-3"
+                    href={`/profile/${post.author.username}`}
+                  >
+                    <span className="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full border">
+                      <span className="flex h-full w-full items-center justify-center rounded-full bg-muted text-sm">
+                        {post.author.avatarURL ? (
+                          <Image
+                            alt="user profile"
+                            className="rounded-full object-cover"
+                            fill
+                            src={post.author.avatarURL}
+                          />
+                        ) : (
+                          post.author.fullName.charAt(0)
+                        )}
+                      </span>
                     </span>
-                  </span>
-                  <div>
-                    <p className="font-semibold text-sm transition-colors group-hover:text-primary">
-                      {post.author.fullName}
-                    </p>
-                    <p className="text-muted-foreground text-xs">
-                      @{post.author.username} · {timeAgo(post.createdAt)}
+                    <div>
+                      <p className="font-semibold text-sm transition-colors group-hover:text-primary">
+                        {post.author.fullName}
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        @{post.author.username} · {timeAgo(post.createdAt)}
+                      </p>
+                    </div>
+                  </Link>
+
+                  {post.isOwner ? <PostActions post={post} /> : <ReportPost />}
+                </div>
+              </div>
+              <div className="p-0">
+                <div className="relative aspect-4/3 bg-muted">
+                  <Image alt={post.id} fill src={post.imageURL} />
+                </div>
+                {post.caption && (
+                  <div className="border-b px-4 py-5">
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                      {post.caption}
                     </p>
                   </div>
-                </Link>
-
-                {post.isOwner ? <PostActions post={post} /> : <ReportPost />}
+                )}
               </div>
-            </div>
-            <div className="p-0">
-              <div className="relative aspect-4/3 bg-muted">
-                <Image alt={post.id} fill src={post.imageURL} />
-              </div>
-              {post.caption && (
-                <div className="border-b px-4 py-5">
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                    {post.caption}
-                  </p>
-                </div>
-              )}
-            </div>
 
-            <PostInteractiveButtons
-              comments={post.comments}
-              // biome-ignore lint/style/noNonNullAssertion: No problem here
-              currentFullName={currentFullName!}
-              currentUserAvatar={post.author.avatarURL ?? ""}
-              isBookmarked={post.isBookmarked}
-              isLiked={post.isLiked}
-              likes={post.likes}
-              postId={post.id}
-            />
-          </div>
-        ))
+              <PostInteractiveButtons
+                comments={post.comments}
+                // biome-ignore lint/style/noNonNullAssertion: No problem here
+                currentFullName={currentFullName!}
+                currentUserAvatar={post.author.avatarURL ?? ""}
+                isBookmarked={post.isBookmarked}
+                isLiked={post.isLiked}
+                likes={post.likes}
+                postId={post.id}
+              />
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/6 bg-white/3">
