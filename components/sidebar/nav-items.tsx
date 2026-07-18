@@ -11,7 +11,6 @@ export default function NavItems() {
   return (
     <>
       <Link
-        // className="flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sidebar-foreground text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         className={cn(
           "flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
           pathname === "/"
@@ -25,7 +24,12 @@ export default function NavItems() {
       </Link>
 
       <Link
-        className="flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sidebar-foreground text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        className={cn(
+          "flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
+          pathname === "/bookmarks"
+            ? "bg-sidebar-primary text-sidebar-primary-foreground"
+            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        )}
         href="/bookmarks"
       >
         <Bookmark size={20} />

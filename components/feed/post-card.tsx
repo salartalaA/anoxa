@@ -85,6 +85,7 @@ export default async function PostCard() {
         // biome-ignore lint/style/noNonNullAssertion: No problem here
         currentFullName={currentFullName!}
         currentUserAvatar={post.author.avatarURL ?? ""}
+        isBookmarked={post.isBookmarked}
         isLiked={post.isLiked}
         likes={post.likes}
         postId={post.id}

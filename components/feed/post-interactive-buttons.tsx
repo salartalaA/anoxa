@@ -14,6 +14,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { toggleBookmark } from "@/actions/bookmarks";
 import {
   createComment,
   deleteComment,
@@ -41,6 +42,7 @@ export default function PostInteractiveButtons({
   postId,
   comments,
   isLiked,
+  isBookmarked,
   likes,
 }: {
   currentUserAvatar: string;
@@ -48,6 +50,7 @@ export default function PostInteractiveButtons({
   postId: string;
   comments: CommentWithAuthor[];
   isLiked: boolean;
+  isBookmarked: boolean;
   likes: Like[];
 }) {
   const [showComment, setShowComment] = useState(false);
@@ -104,6 +107,10 @@ export default function PostInteractiveButtons({
     await toggleLike(postId);
   };
 
+  const handleBookmark = async (postId: string) => {
+    await toggleBookmark(postId);
+  };
+
   return (
     <div className="flex flex-col items-center p-6 pt-0">
       <div className="flex w-full items-center justify-between pt-3">
@@ -131,8 +138,15 @@ export default function PostInteractiveButtons({
         </div>
 
         <div className="flex items-center gap-1">
-          <Button className="px-3" size="sm" variant="ghost">
-            <Bookmark className="h-4 w-4" />
+          <Button
+            className="px-3"
+            onClick={() => handleBookmark(postId)}
+            size="sm"
+            variant="ghost"
+          >
+            <Bookmark
+              className={cn("h-4 w-4", isBookmarked && "fill-primary")}
+            />
           </Button>
 
           <Button className="px-3" size="sm" variant="ghost">

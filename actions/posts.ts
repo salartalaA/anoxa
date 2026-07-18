@@ -90,6 +90,7 @@ export async function getPosts() {
         },
       },
       likes: true,
+      bookmarks: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -100,6 +101,9 @@ export async function getPosts() {
     ...post,
     isOwner: post.authorId === currentUser.id,
     isLiked: post.likes.some((like) => like.userId === currentUser.id),
+    isBookmarked: post.bookmarks.some(
+      (bookmark) => bookmark.userId === currentUser.id
+    ),
 
     comments: post.comments.map((comment) => ({
       ...comment,
