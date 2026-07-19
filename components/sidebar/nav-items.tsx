@@ -18,6 +18,7 @@ export default function NavItems() {
             : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         )}
         href="/"
+        prefetch
       >
         <Rss size={20} />
         Feed
@@ -31,6 +32,7 @@ export default function NavItems() {
             : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         )}
         href="/bookmarks"
+        prefetch
       >
         <Bookmark size={20} />
         Bookmarks

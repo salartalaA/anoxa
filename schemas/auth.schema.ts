@@ -48,8 +48,30 @@ export const editProfileSchema = z.object({
     .optional(),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.email("Please enter a valid email address.").trim().toLowerCase(),
+});
+
+export const resetPasswordSchema = z.object({
+  password: z
+    .string()
+    .trim()
+    .min(8, "Password must be at least 8 characters.")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter.")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter.")
+    .regex(/\d/, "Password must contain at least one number.")
+    .regex(
+      /[!@#$%^&*(),.?":{}|<>_\-+=/\\[\]`~';]/,
+      "Password must contain at least one special character."
+    ),
+});
+
 export type LoginData = z.infer<typeof loginSchema>;
 
 export type RegisterData = z.infer<typeof registerSchema>;
 
 export type EditProfileData = z.infer<typeof editProfileSchema>;
+
+export type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>;
+
+export type ResetPasswordData = z.infer<typeof resetPasswordSchema>;

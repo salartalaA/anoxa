@@ -1,10 +1,19 @@
 "use server";
 
+import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
+import ResetPasswordEmail from "@/emails/reset-password";
 import prisma from "@/lib/prisma";
-import type { LoginData, RegisterData } from "@/schemas/auth.schema";
+import { resend } from "@/lib/resend";
+import type {
+  ForgotPasswordData,
+  LoginData,
+  RegisterData,
+  ResetPasswordData,
+} from "@/schemas/auth.schema";
 
 export async function registerUser(data: RegisterData) {
   const existingUser = await prisma.user.findFirst({
@@ -164,4 +173,109 @@ export async function deleteAccount(userId: string) {
   });
 
   revalidatePath("/auth/register");
+}
+
+export async function requestPasswordReset(data: ForgotPasswordData) {
+  const user = await prisma.user.findUnique({
+    where: {
+      email: data.email,
+    },
+  });
+
+  if (!user) {
+    return;
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+  await prisma.passwordResetToken.deleteMany({
+    where: {
+      userId: user.id,
+    },
+  });
+
+  await prisma.passwordResetToken.create({
+    data: {
+      tokenHash: hashedToken,
+      expiresAt,
+      userId: user.id,
+    },
+  });
+
+  if (!process.env.EMAIL_FROM) {
+    throw new Error("EMAIL_FROM is missing");
+  }
+
+  const resetLink =
+    process.env.Node_ENV === "development"
+      ? `http://localhost:3000/auth/reset-password/${token}`
+      : `https://anoxa.vercel.app/auth/reset-password/${token}`;
+
+  await resend.emails.send({
+    from: process.env.EMAIL_FROM,
+    to: user.email,
+    subject: "Reset your password",
+    react: <ResetPasswordEmail resetUrl={resetLink} />,
+  });
+}
+
+export async function resetToken(tokenHash: string) {
+  const resetToken = await prisma.passwordResetToken.findUnique({
+    where: {
+      tokenHash,
+    },
+  });
+
+  if (!resetToken) {
+    notFound();
+  }
+
+  if (resetToken.expiresAt < new Date()) {
+    await prisma.passwordResetToken.delete({
+      where: {
+        tokenHash,
+      },
+    });
+
+    notFound();
+  }
+
+  return resetToken;
+}
+
+export async function resetPassword(
+  data: ResetPasswordData,
+  tokenHash: string
+) {
+  const hashedPassword = await bcrypt.hash(data.password, 10);
+
+  const tokenData = await prisma.passwordResetToken.findUnique({
+    where: {
+      tokenHash,
+    },
+  });
+
+  if (!tokenData) {
+    return;
+  }
+
+  await prisma.user.update({
+    data: {
+      password: hashedPassword,
+    },
+
+    where: {
+      id: tokenData.userId,
+    },
+  });
+
+  await prisma.session.deleteMany({
+    where: {
+      userId: tokenData.userId,
+    },
+  });
 }

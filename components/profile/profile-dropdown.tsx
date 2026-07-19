@@ -3,6 +3,9 @@
 import { LogOut, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { logout } from "@/actions/auth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +26,20 @@ export default function ProfileDropDown({
   avatarURL: string;
   email: string;
 }) {
+  const router = useRouter();
+
+  const handleSignout = async () => {
+    await logout();
+
+    toast.success("Signed out successfully.", {
+      position: "top-right",
+      className: "bg-card! text-primary!",
+      closeButton: true,
+    });
+
+    router.push("/auth/login");
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -77,8 +94,11 @@ export default function ProfileDropDown({
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem className="text-destructive focus:text-destructive">
-          <LogOut className="mr-2 h-4 w-4" />
+        <DropdownMenuItem
+          className="text-destructive focus:text-destructive"
+          onClick={handleSignout}
+        >
+          <LogOut className="h-4 w-4" />
           <span>Sign out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
