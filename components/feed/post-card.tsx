@@ -12,7 +12,7 @@ import { ReportPost } from "./report-post";
 export default async function PostCard() {
   const posts = await getPosts();
 
-  const currentFullName = (await getCurrentUser())?.fullName;
+  const currentUser = await getCurrentUser();
 
   if (posts?.length === 0) {
     return (
@@ -83,8 +83,8 @@ export default async function PostCard() {
       <PostInteractiveButtons
         comments={post.comments}
         // biome-ignore lint/style/noNonNullAssertion: No problem here
-        currentFullName={currentFullName!}
-        currentUserAvatar={post.author.avatarURL ?? ""}
+        currentFullName={currentUser!.fullName}
+        currentUserAvatar={currentUser?.avatarURL ?? ""}
         currentUserReaction={post.currentUserReaction}
         isBookmarked={post.isBookmarked}
         postId={post.id}
