@@ -4,10 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Bookmark,
   Heart,
+  Laugh,
   Loader2,
   MessageSquare,
   Pencil,
   Share2,
+  ThumbsDown,
+  ThumbsUp,
   Trash2,
 } from "lucide-react";
 import Image from "next/image";
@@ -20,9 +23,14 @@ import {
   deleteComment,
   updateComment,
 } from "@/actions/comments";
-import { toggleLike } from "@/actions/likes";
-import type { Like, Prisma } from "@/app/generated/prisma/client";
+import { toggleReaction } from "@/actions/reactions";
+import type { Prisma, ReactionType } from "@/app/generated/prisma/client";
 import { Button } from "@/components/ui/button";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/utils/time-ago";
 import { type CommentData, commentSchema } from "@/schemas/feed.schema";
@@ -41,23 +49,50 @@ export default function PostInteractiveButtons({
   currentFullName,
   postId,
   comments,
-  isLiked,
   isBookmarked,
-  likes,
+  reactionSummery,
+  currentUserReaction,
 }: {
   currentUserAvatar: string;
   currentFullName: string;
   postId: string;
   comments: CommentWithAuthor[];
-  isLiked: boolean;
   isBookmarked: boolean;
-  likes: Like[];
+  reactionSummery: Record<ReactionType, number> & { total: number };
+  currentUserReaction: ReactionType | null;
 }) {
   const [showComment, setShowComment] = useState(false);
   const [isCommentEditing, setIsCommentEditing] = useState<{
     id: string;
     comment: string;
   } | null>(null);
+
+  const reactions = [
+    {
+      type: "HEART",
+      icon: Heart,
+      activeClassName: "fill-pink-600",
+      count: reactionSummery.HEART,
+    },
+    {
+      type: "LAUGH",
+      icon: Laugh,
+      activeClassName: "fill-yellow-600",
+      count: reactionSummery.LAUGH,
+    },
+    {
+      type: "LIKE",
+      icon: ThumbsUp,
+      activeClassName: "fill-blue-600",
+      count: reactionSummery.LIKE,
+    },
+    {
+      type: "DISLIKE",
+      icon: ThumbsDown,
+      activeClassName: "fill-red-700",
+      count: reactionSummery.DISLIKE,
+    },
+  ] as const;
 
   const {
     register,
@@ -103,8 +138,8 @@ export default function PostInteractiveButtons({
     });
   };
 
-  const handleLike = async (postId: string) => {
-    await toggleLike(postId);
+  const handleReaction = async (postId: string, reactionType: ReactionType) => {
+    await toggleReaction(postId, reactionType);
   };
 
   const handleBookmark = async (postId: string) => {
@@ -114,18 +149,41 @@ export default function PostInteractiveButtons({
   return (
     <div className="flex flex-col items-center p-6 pt-0">
       <div className="flex w-full items-center justify-between pt-3">
-        <div className="flex items-center gap-1">
-          <Button
-            className="gap-1.5 px-3"
-            onClick={() => handleLike(postId)}
-            size="sm"
-            variant="ghost"
-          >
-            {/* <Heart className="h-4 w-4" /> */}
-            <Heart className={cn("h-4 w-4", isLiked && "fill-pink-600")} />
-            <span className="text-xs">{likes.length ?? 0}</span>
-          </Button>
+        <div className="flex gap-3">
+          {reactions.map((reaction) => {
+            const Icon = reaction.icon;
 
+            return (
+              <HoverCard key={reaction.type}>
+                <HoverCardTrigger
+                  closeDelay={100}
+                  delay={700}
+                  render={
+                    <Button
+                      className="gap-1.5"
+                      onClick={() => handleReaction(postId, reaction.type)}
+                      size="sm"
+                      variant="ghost"
+                    >
+                      <Icon
+                        className={cn(
+                          "h-4 w-4",
+                          currentUserReaction === reaction.type &&
+                            reaction.activeClassName
+                        )}
+                      />
+                    </Button>
+                  }
+                />
+                <HoverCardContent className="w-fit">
+                  <span className="text-primary text-sm">{reaction.count}</span>
+                </HoverCardContent>
+              </HoverCard>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center gap-1">
           <Button
             className="gap-1.5 px-3"
             onClick={() => setShowComment(!showComment)}
@@ -135,9 +193,7 @@ export default function PostInteractiveButtons({
             <MessageSquare className="h-4 w-4" />
             <span className="text-xs">{comments.length ?? 0}</span>
           </Button>
-        </div>
 
-        <div className="flex items-center gap-1">
           <Button
             className="px-3"
             onClick={() => handleBookmark(postId)}
@@ -154,6 +210,12 @@ export default function PostInteractiveButtons({
           </Button>
         </div>
       </div>
+
+      {reactionSummery.total > 0 && (
+        <span className="mt-3 mr-auto ml-3 text-foreground/40 text-xs">
+          Total Reactions: {reactionSummery.total}
+        </span>
+      )}
 
       {showComment && (
         <form

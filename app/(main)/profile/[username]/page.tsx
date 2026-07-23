@@ -96,10 +96,10 @@ export default async function ProfilePage({
             </div>
             <div className="flex flex-col items-center gap-1 px-4">
               <span className="font-bold text-[22px] text-foreground tabular-nums leading-none tracking-tight">
-                {stats.likes}
+                {stats.reactions}
               </span>
               <span className="font-medium text-[11px] text-foreground/35 tracking-wide">
-                Likes Recieved
+                Reactions Recieved
               </span>
             </div>
           </div>

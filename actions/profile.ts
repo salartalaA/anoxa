@@ -6,7 +6,7 @@ import type { EditProfileData } from "@/schemas/auth.schema";
 import { getCurrentUser } from "./auth";
 
 export async function getProfileStats(userId: string) {
-  const [posts, comments, likes] = await Promise.all([
+  const [posts, comments, reactions] = await Promise.all([
     prisma.post.count({
       where: {
         authorId: userId,
@@ -21,7 +21,7 @@ export async function getProfileStats(userId: string) {
       },
     }),
 
-    prisma.like.count({
+    prisma.reaction.count({
       where: {
         post: {
           authorId: userId,
@@ -33,7 +33,7 @@ export async function getProfileStats(userId: string) {
   return {
     posts,
     comments,
-    likes,
+    reactions,
   };
 }
 

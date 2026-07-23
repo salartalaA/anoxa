@@ -181,8 +181,6 @@ export default function ForgotPasswordPage() {
             </div>
           </div>
         )}
-
-        {/* GMAIL SEND */}
       </div>
     </div>
   );

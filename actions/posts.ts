@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import type { ReactionType } from "@/app/generated/prisma/enums";
 import cloudinary from "@/lib/cloudinary";
 import prisma from "@/lib/prisma";
 import { uploadImage } from "@/lib/uploader";
@@ -89,7 +90,12 @@ export async function getPosts() {
           createdAt: "desc",
         },
       },
-      likes: true,
+      reactions: {
+        select: {
+          userId: true,
+          type: true,
+        },
+      },
       bookmarks: true,
     },
     orderBy: {
@@ -97,19 +103,45 @@ export async function getPosts() {
     },
   });
 
-  return posts.map((post) => ({
-    ...post,
-    isOwner: post.authorId === currentUser.id,
-    isLiked: post.likes.some((like) => like.userId === currentUser.id),
-    isBookmarked: post.bookmarks.some(
-      (bookmark) => bookmark.userId === currentUser.id
-    ),
+  return posts.map((post) => {
+    const currentUserReaction =
+      post.reactions.find((reaction) => reaction.userId === currentUser.id)
+        ?.type ?? null;
 
-    comments: post.comments.map((comment) => ({
-      ...comment,
-      isOwner: comment.authorId === currentUser.id,
-    })),
-  }));
+    const reactionSummary: Record<ReactionType, number> = {
+      HEART: 0,
+      LIKE: 0,
+      LAUGH: 0,
+      DISLIKE: 0,
+    };
+
+    for (const reaction of post.reactions) {
+      reactionSummary[reaction.type]++;
+    }
+
+    const { reactions, bookmarks, ...postData } = post;
+
+    return {
+      ...postData,
+
+      isOwner: post.authorId === currentUser.id,
+      currentUserReaction,
+
+      reactionSummary: {
+        ...reactionSummary,
+        total: post.reactions.length,
+      },
+
+      isBookmarked: post.bookmarks.some(
+        (bookmark) => bookmark.userId === currentUser.id
+      ),
+
+      comments: post.comments.map((comment) => ({
+        ...comment,
+        isOwner: comment.authorId === currentUser.id,
+      })),
+    };
+  });
 }
 
 export async function deletePost(postId: string) {
