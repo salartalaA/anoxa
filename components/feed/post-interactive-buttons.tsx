@@ -148,6 +148,21 @@ export default function PostInteractiveButtons({
     await toggleBookmark(postId);
   };
 
+  const handleShare = async (postId: string) => {
+    const postURL =
+      process.env.NODE_ENV === "development"
+        ? `http://localhost:3000/#${postId}`
+        : `https://anoxa.vercel.app/#${postId}`;
+
+    await navigator.clipboard.writeText(postURL);
+
+    toast.success("Copied to clipboard", {
+      position: "top-right",
+      className: "bg-card! text-primary!",
+      closeButton: true,
+    });
+  };
+
   return (
     <div className="flex flex-col items-center p-6 pt-0">
       <div className="flex w-full items-center justify-between pt-3">
@@ -207,7 +222,12 @@ export default function PostInteractiveButtons({
             />
           </Button>
 
-          <Button className="px-3" size="sm" variant="ghost">
+          <Button
+            className="px-3"
+            onClick={() => handleShare(postId)}
+            size="sm"
+            variant="ghost"
+          >
             <Share2 className="h-4 w-4" />
           </Button>
         </div>

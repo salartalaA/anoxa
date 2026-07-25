@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { type RefObject, useEffect, useRef } from "react";
 import {
   type getNotification,
@@ -25,6 +26,8 @@ export default function NotificationMenuItem({
   root: RefObject<HTMLDivElement | null>;
 }) {
   const notifRef = useRef<HTMLDivElement>(null);
+
+  const router = useRouter();
 
   useEffect(() => {
     if (notif.isRead) {
@@ -54,13 +57,18 @@ export default function NotificationMenuItem({
     return () => observer.disconnect();
   }, [notif, root]);
 
+  const URL =
+    process.env.NODE_ENV === "development"
+      ? `http://localhost:3000/#${notif.postId}`
+      : `https://anoxa.vercel.app/#${notif.postId}`;
+
   return (
     <DropdownMenuItem
-      // className="cursor-pointer rounded-lg p-3 focus:bg-muted"
       className={cn(
         "cursor-pointer rounded-lg p-3 transition-colors focus:bg-muted",
-        notif.isRead ? "opacity-70" : "bg-primary/10 hover:bg-primary/15"
+        notif.isRead ? "opacity-70" : ""
       )}
+      onClick={() => router.push(URL)}
       ref={notifRef}
     >
       <div className="flex items-start gap-3">

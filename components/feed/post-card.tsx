@@ -31,7 +31,8 @@ export default async function PostCard() {
 
   return posts?.map((post) => (
     <div
-      className="overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-200"
+      className="scroll-mt-20 overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-200"
+      id={post.id}
       key={post.id}
     >
       <div className="flex flex-col space-y-1.5 p-6 pb-3">
