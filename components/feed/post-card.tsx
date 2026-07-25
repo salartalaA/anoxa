@@ -81,6 +81,7 @@ export default async function PostCard() {
       </div>
 
       <PostInteractiveButtons
+        authorId={post.authorId}
         comments={post.comments}
         // biome-ignore lint/style/noNonNullAssertion: No problem here
         currentFullName={currentUser!.fullName}

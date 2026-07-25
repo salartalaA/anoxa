@@ -48,6 +48,7 @@ export default function PostInteractiveButtons({
   currentUserAvatar,
   currentFullName,
   postId,
+  authorId,
   comments,
   isBookmarked,
   reactionSummery,
@@ -56,6 +57,7 @@ export default function PostInteractiveButtons({
   currentUserAvatar: string;
   currentFullName: string;
   postId: string;
+  authorId: string;
   comments: CommentWithAuthor[];
   isBookmarked: boolean;
   reactionSummery: Record<ReactionType, number> & { total: number };
@@ -114,7 +116,7 @@ export default function PostInteractiveButtons({
         closeButton: true,
       });
     } else {
-      await createComment(comment.content, postId);
+      await createComment(comment.content, postId, authorId);
 
       toast.success("Comment added successfully!", {
         position: "top-right",
@@ -129,7 +131,7 @@ export default function PostInteractiveButtons({
   };
 
   const handleDeleteComment = async (commentId: string) => {
-    await deleteComment(commentId);
+    await deleteComment(commentId, postId, authorId);
 
     toast.success("Comment deleted successfully!", {
       position: "top-right",
@@ -139,7 +141,7 @@ export default function PostInteractiveButtons({
   };
 
   const handleReaction = async (postId: string, reactionType: ReactionType) => {
-    await toggleReaction(postId, reactionType);
+    await toggleReaction(authorId, postId, reactionType);
   };
 
   const handleBookmark = async (postId: string) => {

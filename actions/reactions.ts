@@ -5,7 +5,11 @@ import type { ReactionType } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { getCurrentUser } from "./auth";
 
-export async function toggleReaction(postId: string, type: ReactionType) {
+export async function toggleReaction(
+  authorId: string,
+  postId: string,
+  reactionType: ReactionType
+) {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
@@ -26,21 +30,50 @@ export async function toggleReaction(postId: string, type: ReactionType) {
       data: {
         postId,
         userId: currentUser.id,
-        type,
+        type: reactionType,
       },
     });
+
+    if (currentUser.id !== authorId) {
+      await prisma.notification.create({
+        data: {
+          postId,
+          senderId: currentUser.id,
+          receiverId: authorId,
+          type: "REACTION",
+          reactionType,
+        },
+      });
+    }
 
     revalidatePath("/");
 
     return createdReaction;
   }
 
-  if (existingReaction.type === type) {
+  const existingNotification = await prisma.notification.findFirst({
+    where: {
+      postId,
+      receiverId: authorId,
+      senderId: currentUser.id,
+      type: "REACTION",
+    },
+  });
+
+  if (existingReaction.type === reactionType) {
     const deletedReaction = await prisma.reaction.delete({
       where: {
         id: existingReaction.id,
       },
     });
+
+    if (currentUser.id !== authorId) {
+      await prisma.notification.delete({
+        where: {
+          id: existingNotification?.id,
+        },
+      });
+    }
 
     revalidatePath("/");
 
@@ -49,12 +82,23 @@ export async function toggleReaction(postId: string, type: ReactionType) {
 
   await prisma.reaction.update({
     data: {
-      type,
+      type: reactionType,
     },
     where: {
       id: existingReaction.id,
     },
   });
 
-  revalidatePath("/");
+  if (currentUser.id !== authorId) {
+    await prisma.notification.update({
+      data: {
+        reactionType,
+      },
+      where: {
+        id: existingNotification?.id,
+      },
+    });
+  }
+
+  revalidatePath("/Z");
 }

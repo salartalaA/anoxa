@@ -34,6 +34,9 @@ model User {
   reactions               Reaction[]
   bookmarks               Bookmark[]
   passwordResetToken      PasswordResetToken[]
+
+  sentNotifications        Notification[]          @relation("sentNotifications")
+  receivedNotifications    Notification[]          @relation("receivedNotifications")
 }
 
 model Session {
@@ -88,6 +91,7 @@ model Post {
   comments                Comment[]
   reactions               Reaction[]
   bookmarks               Bookmark[]
+  notifications           Notification[]
 
   createdAt               DateTime    @default(now())
   updatedAt               DateTime    @updatedAt
@@ -112,6 +116,32 @@ model Comment {
 
   @@index([authorId])
   @@index([postId])
+}
+
+model Notification {
+  id                      String      @id @default(cuid())
+
+  type                    NotificationType
+
+  senderId                String
+  receiverId              String
+
+  postId                  String
+
+  sender                  User        @relation("sentNotifications" ,fields: [senderId], references: [id], onDelete: Cascade)
+  receiver                User        @relation("receivedNotifications" ,fields: [receiverId], references: [id], onDelete: Cascade)
+  post                    Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  reactionType            ReactionType?
+
+  isRead                  Boolean     @default(false)
+
+  createdAt               DateTime    @default(now())
+}
+
+enum NotificationType {
+  COMMENT
+  REACTION
 }
 
 model Bookmark {

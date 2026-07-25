@@ -86,6 +86,7 @@ export default async function BookmarkPage() {
               </div>
 
               <PostInteractiveButtons
+                authorId={post.authorId}
                 comments={post.comments}
                 // biome-ignore lint/style/noNonNullAssertion: No problem here
                 currentFullName={currentFullName!}
