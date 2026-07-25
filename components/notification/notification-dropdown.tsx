@@ -44,13 +44,27 @@ export default function NotificationDropDown({
         </div>
 
         <ScrollArea className="h-66">
-          {notification?.map((notif) => (
-            <NotificationMenuItem
-              key={notif.id}
-              notif={notif}
-              root={scrollAreaRef}
-            />
-          ))}
+          {notification && notification.length > 0 ? (
+            notification.map((notif) => (
+              <NotificationMenuItem
+                key={notif.id}
+                notif={notif}
+                root={scrollAreaRef}
+              />
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-2 px-4 py-8 text-center">
+              <div className="flex size-10 items-center justify-center rounded-full bg-muted">
+                🔔
+              </div>
+
+              <p className="font-medium text-sm">No notifications yet</p>
+
+              <p className="text-muted-foreground text-xs">
+                You're all caught up!
+              </p>
+            </div>
+          )}
         </ScrollArea>
       </DropdownMenuContent>
     </DropdownMenu>
