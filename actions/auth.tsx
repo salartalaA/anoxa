@@ -211,7 +211,7 @@ export async function requestPasswordReset(data: ForgotPasswordData) {
   }
 
   const resetLink =
-    process.env.Node_ENV === "development"
+    process.env.NODE_ENV === "development"
       ? `http://localhost:3000/auth/reset-password/${token}`
       : `https://anoxa.vercel.app/auth/reset-password/${token}`;
 
