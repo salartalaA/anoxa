@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
 import type { EditProfileData } from "@/schemas/auth.schema";
-import { getCurrentUser } from "./auth";
+import { getCurrentUser, requireActiveUser } from "./auth";
 
 export async function getProfileStats(userId: string) {
   const [posts, comments, reactions] = await Promise.all([
@@ -55,9 +55,15 @@ export async function updateProfile(
   updatedUser: EditProfileData,
   userId: string
 ) {
-  const currentUser = await getCurrentUser();
+  const result = await requireActiveUser();
 
-  if (!currentUser || currentUser.id !== userId) {
+  if (!result.success) {
+    return result;
+  }
+
+  const currentUser = result.user;
+
+  if (currentUser.id !== userId) {
     return;
   }
 

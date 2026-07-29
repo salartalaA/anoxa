@@ -17,6 +17,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { requireActiveUser } from "@/actions/auth";
 import { toggleBookmark } from "@/actions/bookmarks";
 import {
   createComment,
@@ -108,7 +109,15 @@ export default function PostInteractiveButtons({
 
   const onSubmit = async (comment: CommentData) => {
     if (isCommentEditing) {
-      await updateComment(comment.content, isCommentEditing.id);
+      const result = await updateComment(comment.content, isCommentEditing.id);
+
+      if (!result?.success && result?.message) {
+        return toast.info(result?.message, {
+          position: "top-right",
+          className: "bg-card! text-warning!",
+          closeButton: true,
+        });
+      }
 
       toast.success("Comment edited successfully!", {
         position: "top-right",
@@ -116,7 +125,15 @@ export default function PostInteractiveButtons({
         closeButton: true,
       });
     } else {
-      await createComment(comment.content, postId, authorId);
+      const result = await createComment(comment.content, postId, authorId);
+
+      if (!result?.success && result?.message) {
+        return toast.info(result?.message, {
+          position: "top-right",
+          className: "bg-card! text-warning!",
+          closeButton: true,
+        });
+      }
 
       toast.success("Comment added successfully!", {
         position: "top-right",
@@ -131,7 +148,19 @@ export default function PostInteractiveButtons({
   };
 
   const handleDeleteComment = async (commentId: string) => {
-    await deleteComment(commentId, postId, authorId);
+    const result = await deleteComment(commentId, postId, authorId);
+
+    if (!result?.success && result?.message) {
+      return toast.info(result?.message, {
+        position: "top-right",
+        className: "bg-card! text-warning!",
+        closeButton: true,
+      });
+    }
+
+    setIsCommentEditing(null);
+
+    reset();
 
     toast.success("Comment deleted successfully!", {
       position: "top-right",
@@ -141,6 +170,16 @@ export default function PostInteractiveButtons({
   };
 
   const handleReaction = async (postId: string, reactionType: ReactionType) => {
+    const result = await requireActiveUser();
+
+    if (!result.success && result.message) {
+      return toast.info(result.message, {
+        position: "top-right",
+        className: "bg-card! text-warning!",
+        closeButton: true,
+      });
+    }
+
     await toggleReaction(authorId, postId, reactionType);
   };
 

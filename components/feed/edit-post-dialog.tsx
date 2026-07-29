@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { requireActiveUser } from "@/actions/auth";
 import { editPost } from "@/actions/posts";
 import type { Post } from "@/app/generated/prisma/client";
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,16 @@ export function EditPostDialog({
   }, [image]);
 
   const onSubmit = async (data: PostData) => {
+    const result = await requireActiveUser();
+
+    if (!result.success && result.message) {
+      return toast.info(result.message, {
+        position: "top-right",
+        className: "bg-card! text-warning!",
+        closeButton: true,
+      });
+    }
+
     await editPost({
       id: post.id,
       ...data,

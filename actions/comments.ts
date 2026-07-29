@@ -2,18 +2,20 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
-import { getCurrentUser } from "./auth";
+import { requireActiveUser } from "./auth";
 
 export async function createComment(
   newComment: string,
   postId: string,
   authorId: string
 ) {
-  const currentUser = await getCurrentUser();
+  const result = await requireActiveUser();
 
-  if (!currentUser) {
-    return;
+  if (!result.success) {
+    return result;
   }
+
+  const currentUser = result.user;
 
   await prisma.comment.create({
     data: {
@@ -42,13 +44,15 @@ export async function deleteComment(
   postId: string,
   authorId: string
 ) {
-  const currentUser = await getCurrentUser();
+  const result = await requireActiveUser();
 
-  if (!currentUser) {
-    return;
+  if (!result.success) {
+    return result;
   }
 
-  const result = await prisma.comment.deleteMany({
+  const currentUser = result.user;
+
+  const deletedComment = await prisma.comment.deleteMany({
     where: {
       id: commentId,
       authorId: currentUser.id,
@@ -64,7 +68,7 @@ export async function deleteComment(
     },
   });
 
-  if (result.count === 0) {
+  if (deletedComment.count === 0) {
     return;
   }
 
@@ -83,13 +87,15 @@ export async function updateComment(
   updatedCommentContent: string,
   updatedCommentId: string
 ) {
-  const currentUser = await getCurrentUser();
+  const result = await requireActiveUser();
 
-  if (!currentUser) {
-    return;
+  if (!result.success) {
+    return result;
   }
 
-  const result = await prisma.comment.update({
+  const currentUser = result.user;
+
+  const updatedComment = await prisma.comment.update({
     data: {
       content: updatedCommentContent,
       isEdited: true,
@@ -100,7 +106,7 @@ export async function updateComment(
     },
   });
 
-  if (!result) {
+  if (!updatedComment) {
     return;
   }
 

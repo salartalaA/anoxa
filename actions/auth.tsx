@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import ResetPasswordEmail from "@/emails/reset-password";
 import prisma from "@/lib/prisma";
 import { resend } from "@/lib/resend";
@@ -75,6 +75,14 @@ export async function loginUser(data: LoginData) {
     };
   }
 
+  if (user.status === "BANNED") {
+    return {
+      success: false,
+      field: "banned-user",
+      message: "Your account has been banned!",
+    };
+  }
+
   const sessionId = crypto.randomUUID();
 
   const expires = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
@@ -124,6 +132,16 @@ export async function getCurrentUser() {
     return null;
   }
 
+  if (session.user.status === "BANNED") {
+    await prisma.session.deleteMany({
+      where: {
+        id: sessionId,
+      },
+    });
+
+    return redirect("/auth/login");
+  }
+
   if (session.expiresAt < new Date()) {
     await prisma.session.deleteMany({
       where: {
@@ -135,6 +153,30 @@ export async function getCurrentUser() {
   }
 
   return session.user;
+}
+
+export async function requireActiveUser() {
+  const currentUser = await getCurrentUser();
+
+  if (!currentUser) {
+    return {
+      success: false,
+      reason: "UNAUTHORIZED",
+    } as const;
+  }
+
+  if (currentUser.status === "SUSPENDED") {
+    return {
+      success: false,
+      reason: "SUSPENDED",
+      message: "Your account has been suspended!",
+    } as const;
+  }
+
+  return {
+    success: true,
+    user: currentUser,
+  } as const;
 }
 
 export async function logout() {
@@ -154,11 +196,13 @@ export async function logout() {
 }
 
 export async function deleteAccount(userId: string) {
-  const currentUser = await getCurrentUser();
+  const result = await requireActiveUser();
 
-  if (!currentUser) {
-    return;
+  if (!result.success) {
+    return result;
   }
+
+  const currentUser = result.user;
 
   const hasPermission = currentUser.id === userId;
 

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { requireActiveUser } from "@/actions/auth";
 import { updateProfile } from "@/actions/profile";
 import { Button } from "@/components/ui/button";
 import {
@@ -53,6 +54,16 @@ export default function UpdateProfileDialog({
   const bio = watch("bio") ?? "";
 
   const onSubmit = async (updatedUser: EditProfileData) => {
+    const result = await requireActiveUser();
+
+    if (!result.success && result.message) {
+      return toast.info(result.message, {
+        position: "top-right",
+        className: "bg-card! text-warning!",
+        closeButton: true,
+      });
+    }
+
     await updateProfile(updatedUser, userId);
 
     setOpenState(false);

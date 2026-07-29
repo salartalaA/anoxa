@@ -6,14 +6,16 @@ import cloudinary from "@/lib/cloudinary";
 import prisma from "@/lib/prisma";
 import { uploadImage } from "@/lib/uploader";
 import type { PostData } from "@/schemas/feed.schema";
-import { getCurrentUser } from "./auth";
+import { getCurrentUser, requireActiveUser } from "./auth";
 
 export async function createPost(newPost: PostData) {
-  const currentUser = await getCurrentUser();
+  const result = await requireActiveUser();
 
-  if (!currentUser) {
-    return;
+  if (!result.success) {
+    return result;
   }
+
+  const currentUser = result.user;
 
   if (!newPost.image) {
     return;
@@ -34,15 +36,17 @@ export async function createPost(newPost: PostData) {
 }
 
 export async function editPost(updatedPost: PostData) {
-  const currentUser = await getCurrentUser();
+  const result = await requireActiveUser();
 
-  if (!currentUser) {
-    return;
+  if (!result.success) {
+    return result;
   }
 
   if (!updatedPost.image) {
     return;
   }
+
+  const currentUser = result.user;
 
   const post = await prisma.post.findFirst({
     where: {
@@ -145,11 +149,13 @@ export async function getPosts() {
 }
 
 export async function deletePost(postId: string) {
-  const currentUser = await getCurrentUser();
+  const result = await requireActiveUser();
 
-  if (!currentUser) {
-    return;
+  if (!result.success) {
+    return result;
   }
+
+  const currentUser = result.user;
 
   const post = await prisma.post.findFirst({
     where: {

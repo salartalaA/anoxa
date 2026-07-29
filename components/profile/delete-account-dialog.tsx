@@ -30,7 +30,15 @@ export default function DeleteAccountDialog({ userId }: { userId: string }) {
       return;
     }
 
-    await deleteAccount(userId);
+    const result = await deleteAccount(userId);
+
+    if (!result?.success && result?.message) {
+      return toast.info(result?.message, {
+        position: "top-right",
+        className: "bg-card! text-warning!",
+        closeButton: true,
+      });
+    }
 
     setConfirmText("");
 

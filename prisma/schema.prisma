@@ -24,6 +24,7 @@ model User {
   isVerified              Boolean     @default(false)
 
   status                  Status      @default(ACTIVE)
+  role                    Role        @default(USER)
 
   createdAt               DateTime    @default(now())
   updatedAt               DateTime    @updatedAt
@@ -51,6 +52,13 @@ enum Status {
   ACTIVE
   SUSPENDED
   BANNED
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MODERATOR
+  USER
 }
 
 enum ReactionType {

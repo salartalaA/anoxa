@@ -62,6 +62,9 @@ export default async function ProfilePage({
 
             <p className="mb-1 text-muted-foreground text-xs">
               @{userProfile.username}
+              {userProfile.role !== "USER" && (
+                <span className="lowercase"> . {userProfile.role}</span>
+              )}
             </p>
 
             {userProfile.bio && (

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { logout } from "@/actions/auth";
+import type { Role } from "@/app/generated/prisma/enums";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,11 +21,13 @@ export default function ProfileDropDown({
   username,
   avatarURL,
   email,
+  role,
 }: {
   fullName: string;
   username: string;
   avatarURL: string;
   email: string;
+  role: Role;
 }) {
   const router = useRouter();
 
@@ -75,6 +78,11 @@ export default function ProfileDropDown({
           <div className="flex flex-col space-y-1">
             <p className="font-medium text-sm">{fullName}</p>
             <p className="text-muted-foreground text-xs">{email}</p>
+            {role !== "USER" && (
+              <p className="mt-1 text-muted-foreground text-xs">
+                <span>{role}</span>
+              </p>
+            )}
           </div>
         </div>
 

@@ -3,18 +3,20 @@
 import { revalidatePath } from "next/cache";
 import type { ReactionType } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma";
-import { getCurrentUser } from "./auth";
+import { requireActiveUser } from "./auth";
 
 export async function toggleReaction(
   authorId: string,
   postId: string,
   reactionType: ReactionType
 ) {
-  const currentUser = await getCurrentUser();
+  const result = await requireActiveUser();
 
-  if (!currentUser) {
-    return;
+  if (!result.success) {
+    return result;
   }
+
+  const currentUser = result.user;
 
   const existingReaction = await prisma.reaction.findUnique({
     where: {

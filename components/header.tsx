@@ -18,6 +18,7 @@ export default async function Header() {
             avatarURL={user.avatarURL ?? ""}
             email={user.email}
             fullName={user.fullName}
+            role={user.role}
             username={user.username}
           />
         </div>

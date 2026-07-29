@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { requireActiveUser } from "@/actions/auth";
 import { createPost } from "@/actions/posts";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,6 +56,16 @@ export function CreatePostDialog() {
   }, [image]);
 
   const onSubmit = async (newPost: PostData) => {
+    const result = await requireActiveUser();
+
+    if (!result.success && result.message) {
+      return toast.info(result.message, {
+        position: "top-right",
+        className: "bg-card! text-warning!",
+        closeButton: true,
+      });
+    }
+
     await createPost(newPost);
 
     setOpenState(false);

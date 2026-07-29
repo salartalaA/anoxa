@@ -36,6 +36,14 @@ export default function LoginPage() {
       });
     }
 
+    if (result.field === "banned-user") {
+      return toast.error(result.message, {
+        position: "top-right",
+        className: "bg-card! text-destructive! border-destructive/60!",
+        closeButton: true,
+      });
+    }
+
     toast.success("Welcome back!", {
       position: "top-right",
       className: "bg-card! text-primary!",

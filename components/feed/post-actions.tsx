@@ -3,6 +3,7 @@
 import { Ellipsis, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { requireActiveUser } from "@/actions/auth";
 import { deletePost } from "@/actions/posts";
 import type { Post } from "@/app/generated/prisma/client";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,16 @@ export function PostActions({ post }: { post: Post }) {
   const [editOpen, setEditOpen] = useState(false);
 
   const handleDelete = async (postId: string) => {
+    const result = await requireActiveUser();
+
+    if (!result.success && result.message) {
+      return toast.info(result.message, {
+        position: "top-right",
+        className: "bg-card! text-warning!",
+        closeButton: true,
+      });
+    }
+
     await deletePost(postId);
 
     toast.success("Post deleted successfully!", {
