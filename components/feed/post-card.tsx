@@ -40,6 +40,7 @@ export default async function PostCard() {
           <Link
             className="group flex items-center gap-3"
             href={`/profile/${post.author.username}`}
+            prefetch
           >
             <span className="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full border">
               <span className="flex h-full w-full items-center justify-center rounded-full bg-muted text-sm">
