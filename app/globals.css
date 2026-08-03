@@ -159,3 +159,9 @@
     @apply font-sans;
   } */
 }
+
+.glass-card {
+  background: hsl(var(--card) / 0.6);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
