@@ -36,8 +36,28 @@ model User {
   bookmarks               Bookmark[]
   passwordResetToken      PasswordResetToken[]
 
-  sentNotifications        Notification[]          @relation("sentNotifications")
-  receivedNotifications    Notification[]          @relation("receivedNotifications")
+  sentNotifications       Notification[]          @relation("sentNotifications")
+  receivedNotifications   Notification[]          @relation("receivedNotifications")
+
+  sentMessages            Message[]               @relation("sentMessages")
+  receivedMessages        Message[]               @relation("receivedMessages")
+}
+
+model Message {
+  id                      String      @id @default(cuid())
+
+  text                    String
+
+  senderId                String
+  receiverId              String
+
+  sender                  User        @relation("sentMessages" ,fields: [senderId], references: [id], onDelete: Cascade)
+  receiver                User        @relation("receivedMessages" ,fields: [receiverId], references: [id], onDelete: Cascade)
+
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+
+  @@index([senderId, receiverId])
 }
 
 model Session {
