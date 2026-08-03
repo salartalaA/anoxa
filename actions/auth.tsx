@@ -323,3 +323,20 @@ export async function resetPassword(
     },
   });
 }
+
+export async function allActiveUsers() {
+  const currentUser = await requireActiveUser();
+
+  if (!currentUser.success) {
+    return currentUser.user;
+  }
+
+  return await prisma.user.findMany({
+    omit: {
+      password: true,
+    },
+    where: {
+      status: "ACTIVE",
+    },
+  });
+}
