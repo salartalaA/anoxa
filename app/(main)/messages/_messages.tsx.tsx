@@ -1,134 +1,113 @@
 "use client";
 
 import { MessageCircle, Search } from "lucide-react";
-import { useState } from "react";
-import type { User } from "@/app/generated/prisma/client";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import type { Message } from "@/app/generated/prisma/client";
 import MessagePanel from "@/components/messages/message-panel";
-import SendMessageDialog from "@/components/messages/send-message-dialog";
+import SendMessageDialog, {
+  type CustomUser,
+} from "@/components/messages/send-message-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { socket } from "@/lib/socket";
 import { cn } from "@/lib/utils";
-import type { ConversationItem } from "./page";
+
+export interface OldMessages {
+  conversationId: string;
+  oldMessages: Message[];
+}
+
+export interface Conversation {
+  avatarURL: string | null;
+  conversationId: string;
+  fullName: string;
+  id: string;
+  lastMessage: Message | null;
+  lastMessageAt: Date | null;
+  lastSeen: Date | null;
+  unreadCount: number | null;
+  username: string;
+}
 
 export default function MessagesPage({
   activeUsers,
+  currentUserId,
+  chats,
 }: {
-  activeUsers: Omit<User, "password">[];
+  activeUsers: CustomUser[];
+  currentUserId: string;
+  chats: Conversation[];
 }) {
   const [activeConversation, setActiveConversation] =
-    useState<ConversationItem | null>(null);
+    useState<Conversation | null>(null);
 
   const [panelOpenState, setPanelOpenState] = useState(false);
 
-  const chats: ConversationItem[] = [
-    {
-      id: 1,
-      fullName: "Eren Yeager",
-      lastMessage: "See you tomorrow at the training grounds...",
-      lastMessageAt: "2m ago",
-      isOnline: true,
-      unreadCount: 3,
-    },
-    {
-      id: 2,
-      fullName: "Mikasa Ackerman",
-      lastMessage: "The scarf looks great, thank you.",
-      lastMessageAt: "12m ago",
-      isOnline: true,
-      unreadCount: 1,
-    },
-    {
-      id: 3,
-      fullName: "Armin Arlert",
-      lastMessage: "I found something interesting in the archives.",
-      lastMessageAt: "1h ago",
-      isOnline: false,
-      unreadCount: null,
-    },
-    {
-      id: 4,
-      fullName: "Levi Ackerman",
-      lastMessage: "Clean the barracks before inspection.",
-      lastMessageAt: "3h ago",
-      isOnline: false,
-      unreadCount: null,
-    },
-    {
-      id: 5,
-      fullName: "Hange Zoe",
-      lastMessage: "The new experiment results are fascinating!",
-      lastMessageAt: "5h ago",
-      isOnline: true,
-      unreadCount: 7,
-    },
-    {
-      id: 6,
-      fullName: "Erwin Smith",
-      lastMessage: "Dedicate your heart.",
-      lastMessageAt: "1d ago",
-      isOnline: false,
-      unreadCount: null,
-    },
-    {
-      id: 7,
-      fullName: "Sasha Blouse",
-      lastMessage: "Do we have any more of that bread?",
-      lastMessageAt: "2d ago",
-      isOnline: false,
-      unreadCount: null,
-    },
-    {
-      id: 8,
-      fullName: "Jean Kirstein",
-      lastMessage: "See you at the mess hall.",
-      lastMessageAt: "3d ago",
-      isOnline: false,
-      unreadCount: null,
-    },
-    {
-      id: 9,
-      fullName: "Connie Springer",
-      lastMessage: "That was hilarious, you should have seen it.",
-      lastMessageAt: "4d ago",
-      isOnline: false,
-      unreadCount: null,
-    },
-    {
-      id: 10,
-      fullName: "Historia Reiss",
-      lastMessage: "The ceremony is next week.",
-      lastMessageAt: "5d ago",
-      isOnline: false,
-      unreadCount: null,
-    },
-    {
-      id: 11,
-      fullName: "Reiner Braun",
-      lastMessage: "We need to talk.",
-      lastMessageAt: "1w ago",
-      isOnline: false,
-      unreadCount: null,
-    },
-    {
-      id: 12,
-      fullName: "Annie Leonhart",
-      lastMessage: "...",
-      lastMessageAt: "2w ago",
-      isOnline: false,
-      unreadCount: null,
-    },
-  ];
+  const [message, setMessage] = useState("");
 
-  const handleOpenchat = (conversation: ConversationItem) => {
+  const [oldMessages, setOldMessages] = useState<OldMessages>();
+
+  const [conversationId, setConversationId] = useState("");
+
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+
+  const [lastSeen, setLastSeen] = useState<Record<string, Date>>({});
+
+  const [isTyping, setIsTyping] = useState(false);
+
+  // console.log("ALL ONLINE USERS: ", onlineUsers);
+
+  useEffect(() => {
+    socket.connect();
+
+    // socket.on("connect", () => {
+    //   console.log("Socket connected: ", socket.id);
+    // });
+
+    socket.on("online-users", ({ users }) => {
+      setOnlineUsers(users);
+    });
+
+    socket.on("old-messages", (oldMessages: OldMessages) => {
+      setOldMessages(oldMessages);
+      setConversationId(oldMessages.conversationId);
+    });
+
+    socket.on("user-online", (userId) => {
+      // console.log("Online: ", userId);
+      setOnlineUsers((prev) => [...prev, userId]);
+    });
+
+    socket.on("user-offline", ({ userId, lastSeen }) => {
+      // console.log("Offline: ", userId);
+      setOnlineUsers((prev) => prev.filter((id) => id !== userId));
+      setLastSeen((prev) => ({ ...prev, [userId]: new Date(lastSeen) }));
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("user-online");
+      socket.off("user-offline");
+    };
+  }, []);
+
+  const handleOpenchat = (conversation: Conversation) => {
     const getChat = chats.find((chat) => chat.id === conversation.id);
 
     if (!getChat) {
       return;
     }
 
+    socket.emit("open-chat", {
+      currentUserId,
+      otherUserId: conversation.id,
+    });
+
     setActiveConversation(getChat);
     setPanelOpenState(true);
+    setMessage("");
   };
 
   return (
@@ -149,9 +128,11 @@ export default function MessagesPage({
 
                 {activeUsers && (
                   <SendMessageDialog
+                    activeUsers={activeUsers}
+                    currentUserId={currentUserId}
                     setActiveConversation={setActiveConversation}
+                    setMessage={setMessage}
                     setPanelOpenState={setPanelOpenState}
-                    users={activeUsers}
                   />
                 )}
               </div>
@@ -166,72 +147,99 @@ export default function MessagesPage({
               <ScrollArea className="relative mt-4 flex-1 overflow-hidden px-1">
                 <div className="h-full w-full">
                   <div className="space-y-1 pr-2">
-                    {chats.map((chat) => (
-                      <Button
-                        className={cn(
-                          "group relative flex w-full items-center gap-3 rounded-xl px-3 py-7 text-left transition-all duration-200 hover:bg-accent/60",
-                          activeConversation?.id === chat.id && "bg-primary/10"
-                        )}
-                        key={chat.id}
-                        onClick={() => handleOpenchat(chat)}
-                        variant="ghost"
-                      >
-                        {activeConversation?.id === chat.id && (
-                          <span className="absolute top-1/2 left-0 h-7 -translate-y-1/2 rounded-r-full border-primary border-l-2" />
-                        )}
+                    {chats.map((chat) => {
+                      const time = chat.lastMessageAt
+                        ? new Date(chat.lastMessageAt).toLocaleTimeString(
+                            "en-US",
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: false,
+                            }
+                          )
+                        : "";
 
-                        <div className="relative shrink-0">
-                          <div
-                            className="flex h-11 w-11 items-center justify-center rounded-full font-semibold text-sm text-white"
-                            // style={{ backgroundColor: chat.avatarColor }}
-                          >
-                            {chat.fullName.charAt(0)}
-                          </div>
+                      const isOnline = onlineUsers.includes(chat.id);
 
-                          {chat.isOnline && (
-                            <span className="absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 border-card bg-success" />
+                      return (
+                        <Button
+                          className={cn(
+                            "group relative flex w-full items-center gap-3 rounded-xl px-3 py-7 text-left transition-all duration-200 hover:bg-accent/60",
+                            activeConversation?.id === chat.id &&
+                              "bg-primary/10"
                           )}
-                        </div>
+                          key={chat.id}
+                          onClick={() => handleOpenchat(chat)}
+                          variant="ghost"
+                        >
+                          {activeConversation?.id === chat.id && (
+                            <span className="absolute top-1/2 left-0 h-7 -translate-y-1/2 rounded-r-full border-primary border-l-2" />
+                          )}
 
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between gap-2">
-                            <p
-                              className={cn(
-                                "truncate text-sm",
-                                chat.unreadCount
-                                  ? "font-semibold text-foreground"
-                                  : "font-medium text-foreground"
-                              )}
+                          <div className="relative shrink-0">
+                            <div
+                              className="flex h-11 w-11 items-center justify-center rounded-full font-semibold text-sm text-white"
+                              // style={{ backgroundColor: chat.avatarColor }}
                             >
-                              {chat.fullName}
-                            </p>
-
-                            <span className="shrink-0 text-muted-foreground text-xs">
-                              {chat.lastMessageAt}
-                            </span>
-                          </div>
-
-                          <div className="mt-0.5 flex items-center justify-between gap-2">
-                            <p
-                              className={cn(
-                                "truncate text-xs",
-                                chat.unreadCount
-                                  ? "font-medium text-foreground/80"
-                                  : "text-muted-foreground"
+                              {chat.avatarURL ? (
+                                <Image
+                                  alt="user profile"
+                                  className="rounded-full object-cover"
+                                  fill
+                                  src={chat.avatarURL}
+                                />
+                              ) : (
+                                <span className="flex h-full w-full items-center justify-center rounded-full bg-muted text-xs">
+                                  {chat.fullName.charAt(0)}
+                                </span>
                               )}
-                            >
-                              {chat.lastMessage}
-                            </p>
+                            </div>
 
-                            {chat.unreadCount !== null && (
-                              <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1.5 font-semibold text-foreground text-xs">
-                                {chat.unreadCount}
-                              </span>
+                            {isOnline && (
+                              <span className="absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 border-card bg-success" />
                             )}
                           </div>
-                        </div>
-                      </Button>
-                    ))}
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <p
+                                className={cn(
+                                  "truncate text-sm",
+                                  chat.unreadCount
+                                    ? "font-semibold text-foreground"
+                                    : "font-medium text-foreground"
+                                )}
+                              >
+                                {chat.fullName}
+                              </p>
+
+                              <span className="shrink-0 text-muted-foreground text-xs">
+                                {time}
+                              </span>
+                            </div>
+
+                            <div className="mt-0.5 flex items-center justify-between gap-2">
+                              <p
+                                className={cn(
+                                  "truncate text-xs",
+                                  chat.unreadCount
+                                    ? "font-medium text-foreground/80"
+                                    : "text-muted-foreground"
+                                )}
+                              >
+                                {chat.lastMessage?.text}
+                              </p>
+
+                              {chat.unreadCount !== null && (
+                                <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1.5 font-semibold text-foreground text-xs">
+                                  {chat.unreadCount}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </Button>
+                      );
+                    })}
                   </div>
                 </div>
               </ScrollArea>
@@ -248,7 +256,18 @@ export default function MessagesPage({
           {activeConversation && panelOpenState ? (
             <MessagePanel
               activeConversation={activeConversation}
+              conversationId={conversationId}
+              currentUserId={currentUserId}
+              isTyping={isTyping}
+              // biome-ignore lint/style/noNonNullAssertion: No problem here
+              lastSeen={lastSeen!}
+              message={message}
+              oldMessages={oldMessages}
+              onlineUsers={onlineUsers}
+              otherUserId={activeConversation.id}
               setActiveConversation={setActiveConversation}
+              setIsTyping={setIsTyping}
+              setMessage={setMessage}
               setPanelOpenState={setPanelOpenState}
             />
           ) : (

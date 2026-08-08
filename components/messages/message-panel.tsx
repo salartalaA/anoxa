@@ -1,94 +1,183 @@
-import { Send, X } from "lucide-react";
-import type { Dispatch, SetStateAction } from "react";
-import type { ConversationItem } from "@/app/(main)/messages/page";
+import { Loader2, Send, X } from "lucide-react";
+import Image from "next/image";
+import {
+  type Dispatch,
+  type SetStateAction,
+  type SyntheticEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import type {
+  Conversation,
+  OldMessages,
+} from "@/app/(main)/messages/_messages.tsx";
+import type { Message } from "@/app/generated/prisma/client";
+import { socket } from "@/lib/socket";
 import { cn } from "@/lib/utils";
+import { formatLastSeen } from "@/lib/utils/format-last-seen";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { ScrollArea } from "../ui/scroll-area";
 
-interface Message {
-  content: string;
-  id: string;
-  isMine: boolean;
-  status: "sent" | "delivered" | "seen" | null;
-  time: string;
-}
-
-interface MessageGroup {
-  date: string;
-  messages: Message[];
+interface NewMessage {
+  conversationId: string;
+  createdAt: Date;
+  receiverId: string;
+  senderId: string;
+  text: string;
 }
 
 export default function MessagePanel({
+  message,
   activeConversation,
   setPanelOpenState,
   setActiveConversation,
+  setMessage,
+  currentUserId,
+  otherUserId,
+  conversationId,
+  oldMessages,
+  onlineUsers,
+  lastSeen,
+  isTyping,
+  setIsTyping,
 }: {
-  activeConversation: ConversationItem;
-  setActiveConversation: Dispatch<SetStateAction<ConversationItem | null>>;
+  message: string;
+  setMessage: Dispatch<SetStateAction<string>>;
+  activeConversation: Conversation;
+  setActiveConversation: Dispatch<SetStateAction<Conversation | null>>;
   setPanelOpenState: Dispatch<SetStateAction<boolean>>;
+  currentUserId: string;
+  otherUserId: string;
+  conversationId: string;
+  oldMessages: OldMessages | undefined;
+  onlineUsers: string[];
+  lastSeen: Record<string, Date>;
+  isTyping: boolean;
+  setIsTyping: Dispatch<SetStateAction<boolean>>;
 }) {
-  const messageGroups: MessageGroup[] = [
-    {
-      date: "Yesterday",
-      messages: [
-        {
-          id: "1",
-          content: "Hey, are you coming to the briefing tomorrow?",
-          time: "09:14",
-          isMine: false,
-          status: null,
-        },
-        {
-          id: "2",
-          content: "Yes, I will be there. What time does it start?",
-          time: "09:16",
-          isMine: true,
-          status: "seen",
-        },
-        {
-          id: "3",
-          content: "0800 sharp. Erwin wants everyone early.",
-          time: "09:17",
-          isMine: false,
-          status: null,
-        },
-        {
-          id: "4",
-          content: "Got it. I will bring the maps we printed.",
-          time: "09:20",
-          isMine: true,
-          status: "seen",
-        },
-      ],
+  const [allMessages, setAllMessages] = useState<Message[]>([]);
+
+  const [isLoadingMessages, setIsLoadingMessages] = useState(true);
+
+  const [isTypingFullName, setIsTypingFullName] = useState("");
+
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (!oldMessages) {
+      return;
+    }
+
+    setAllMessages(oldMessages.oldMessages);
+    setIsLoadingMessages(false);
+  }, [oldMessages]);
+
+  useEffect(() => {
+    socket.on("receive-new-message", (newMessage: Message) => {
+      setAllMessages((prev) => [...prev, newMessage]);
+
+      setIsLoadingMessages(false);
+    });
+
+    return () => {
+      socket.off("receive-new-message");
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleStartUserTyping = ({
+      userId,
+      fullname,
+    }: {
+      userId: string;
+      fullname: string;
+    }) => {
+      if (userId !== otherUserId) {
+        return;
+      }
+
+      setIsTyping(true);
+      setIsTypingFullName(fullname);
+    };
+
+    const handleStopUserTyping = ({ userId }: { userId: string }) => {
+      if (userId !== otherUserId) {
+        return;
+      }
+
+      setIsTyping(false);
+    };
+
+    socket.on("start-user-typing", handleStartUserTyping);
+    socket.on("stop-user-typing", handleStopUserTyping);
+
+    return () => {
+      socket.off("start-user-typing", handleStartUserTyping);
+      socket.off("stop-user-typing", handleStopUserTyping);
+    };
+  }, [otherUserId, setIsTyping]);
+
+  useEffect(
+    () => () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
     },
-    {
-      date: "Today",
-      messages: [
-        {
-          id: "5",
-          content: "Perfect. See you tomorrow at the training grounds.",
-          time: "10:02",
-          isMine: false,
-          status: null,
-        },
-        {
-          id: "6",
-          content: "Also, Mikasa asked me to tell you to bring your gear.",
-          time: "10:03",
-          isMine: false,
-          status: null,
-        },
-        {
-          id: "7",
-          content: "Sure, everything is packed already.",
-          time: "10:05",
-          isMine: true,
-          status: "delivered",
-        },
-      ],
-    },
-  ];
+    []
+  );
+
+  const handleSendNewMessage = (e: SyntheticEvent<Element, Event>) => {
+    e.preventDefault();
+
+    if (!message || message.trim() === "") {
+      return null;
+    }
+
+    const newMessage: NewMessage = {
+      text: message,
+      receiverId: otherUserId,
+      senderId: currentUserId,
+      conversationId,
+      createdAt: new Date(),
+    };
+
+    socket.emit("send-new-message", newMessage);
+
+    setMessage("");
+  };
+
+  const isOnline = onlineUsers.includes(activeConversation.id);
+
+  const currentLastSeen =
+    lastSeen[activeConversation.id] ?? activeConversation.lastSeen;
+
+  // const lastSeenTime = currentLastSeen
+  //   ? new Date(currentLastSeen).toLocaleTimeString("en-US", {
+  //       hour: "2-digit",
+  //       minute: "2-digit",
+  //       hour12: false,
+  //     })
+  //   : "";
+
+  const handleTyping = () => {
+    socket.emit("start-typing", {
+      conversationId,
+    });
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit("stop-typing", {
+        conversationId,
+      });
+
+      typingTimeoutRef.current = null;
+    }, 1000);
+  };
 
   return (
     <div className="flex h-full flex-col">
@@ -100,14 +189,24 @@ export default function MessagePanel({
               className="flex h-11 w-11 items-center justify-center rounded-full font-semibold text-sm text-white"
               //   style={{ backgroundColor: activeConversation.avatarColor }}
             >
-              {activeConversation.fullName.charAt(0)}
+              {activeConversation.avatarURL ? (
+                <Image
+                  alt="user profile"
+                  className="size-11 rounded-full"
+                  height={11}
+                  src={activeConversation.avatarURL}
+                  width={11}
+                />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center rounded-full bg-muted text-xs">
+                  {activeConversation.fullName.charAt(0)}
+                </span>
+              )}
             </div>
 
-            {/* {activeConversation.isOnline && (
+            {isOnline && (
               <span className="absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 border-card bg-success" />
-            )} */}
-
-            <span className="absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 border-card bg-success" />
+            )}
           </div>
 
           <div>
@@ -117,8 +216,31 @@ export default function MessagePanel({
 
             <div className="flex items-center gap-1.5">
               <p className="text-muted-foreground text-xs">
-                {/* {activeConversation.isOnline ? "Online" : "Offline"} */}
-                Online
+                {/* {isOnline
+                    ? "Online"
+                    : `Last seen at ${formatLastSeen(currentLastSeen)}`} */}
+
+                {isOnline && "Online"}
+
+                {!isOnline && currentLastSeen && (
+                  <>
+                    {Date.now() - new Date(currentLastSeen).getTime() <
+                      24 * 60 * 60 * 1000 &&
+                      `Last seen at ${new Date(
+                        currentLastSeen
+                      ).toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      })}`}
+
+                    {Date.now() - new Date(currentLastSeen).getTime() >=
+                      24 * 60 * 60 * 1000 &&
+                      `Last seen ${formatLastSeen(currentLastSeen)}`}
+                  </>
+                )}
+
+                {!(isOnline || currentLastSeen) && "Offline"}
               </p>
             </div>
           </div>
@@ -127,8 +249,9 @@ export default function MessagePanel({
         <Button
           className="text-muted-foreground hover:text-foreground"
           onClick={() => {
-            setPanelOpenState(false);
+            setAllMessages([]);
             setActiveConversation(null);
+            setPanelOpenState(false);
           }}
           size="icon"
           variant="ghost"
@@ -138,85 +261,112 @@ export default function MessagePanel({
       </div>
 
       {/* Messages */}
-      <ScrollArea className="scrollbar-thin flex-1">
-        <div className="space-y-1 px-5 py-6">
-          {messageGroups.map((group) => (
-            <div key={group.date}>
-              <div className="flex items-center justify-center py-3">
-                <span className="rounded-full bg-muted/60 px-3 py-1 font-medium text-muted-foreground text-xs">
-                  {group.date}
-                </span>
-              </div>
+      <ScrollArea className="scrollbar-thin flex-1 overflow-hidden">
+        {isLoadingMessages && (
+          <div className="flex h-full items-center justify-center">
+            <Loader2 className="size-10 animate-spin text-primary" />
+          </div>
+        )}
 
-              <div className="space-y-1">
-                {group.messages.map((message) => (
+        {allMessages.length === 0 ? (
+          <div className="flex h-full flex-col items-center justify-center">
+            <p className="font-medium text-foreground">No messages yet</p>
+
+            <p className="mt-1 text-muted-foreground text-sm">
+              Start the conversation by sending a message.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-1 px-5 py-6">
+            {allMessages.map((message: Message) => {
+              const isMine = message.senderId === currentUserId;
+
+              const time = new Date(message.createdAt).toLocaleTimeString(
+                "en-US",
+                {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                }
+              );
+
+              return (
+                <div
+                  className={cn(
+                    "mt-2.5 flex animate-message-in items-end gap-2.5",
+                    isMine ? "justify-end" : "justify-start"
+                  )}
+                  key={message.id}
+                >
+                  {!isMine && (
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border font-semibold text-foreground text-xs">
+                      {activeConversation.fullName.charAt(0)}
+                    </div>
+                  )}
+
                   <div
                     className={cn(
-                      "flex animate-message-in items-end gap-2.5",
-                      message.isMine ? "justify-end" : "justify-start"
+                      "flex max-w-[70%] flex-col",
+                      isMine && "items-end"
                     )}
-                    key={message.id}
                   >
-                    {!message.isMine && (
-                      <div
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-semibold text-white text-xs"
-                        // style={{
-                        //   backgroundColor: activeConversation.avatarColor,
-                        // }}
-                      >
-                        {/* {activeConversation.initials} */}
-                      </div>
-                    )}
-
                     <div
                       className={cn(
-                        "flex max-w-[70%] flex-col",
-                        message.isMine && "items-end"
+                        "rounded-2xl px-4 py-2.5 text-sm shadow-sm",
+                        isMine
+                          ? "rounded-br-md bg-primary text-secondary-foreground"
+                          : "rounded-bl-md bg-secondary text-secondary-foreground"
                       )}
                     >
-                      <div
-                        className={cn(
-                          "rounded-2xl px-4 py-2.5 text-sm shadow-sm",
-                          message.isMine
-                            ? "rounded-br-md bg-primary text-primary-foreground"
-                            : "rounded-bl-md bg-secondary text-secondary-foreground"
-                        )}
-                      >
-                        {message.content}
-                      </div>
+                      {message.text}
+                    </div>
 
-                      <div className="mt-1 flex items-center gap-1.5 px-1">
-                        <span className="text-muted-foreground text-xs">
-                          {message.time}
+                    <div className="mt-1 flex items-center gap-1.5 px-1">
+                      <span className="text-muted-foreground text-xs">
+                        {time}
+                      </span>
+
+                      {isMine && (
+                        <span className="text-muted-foreground/70 text-xs">
+                          · delivered
                         </span>
-
-                        {message.isMine && message.status && (
-                          <span className="text-muted-foreground/70 text-xs capitalize">
-                            · {message.status}
-                          </span>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </ScrollArea>
 
       {/* Input */}
       <div className="border-border/50 border-t px-5 py-4">
-        <div className="flex items-center gap-2.5">
+        <form className="flex items-center gap-2.5">
           <Input
             className="flex-1 bg-background/50"
+            onChange={(e) => {
+              setMessage(e.target.value);
+              handleTyping();
+            }}
             placeholder="Type a message..."
+            value={message}
           />
 
-          <Button className="h-10 w-10 shrink-0" size="icon">
+          <Button
+            className="h-10 w-10 shrink-0"
+            onClick={handleSendNewMessage}
+            size="icon"
+            type="submit"
+          >
             <Send className="h-4 w-4" />
           </Button>
-        </div>
+        </form>
+        {isTyping && (
+          <p className="mt-1 bg-transparent text-muted-foreground text-xs">
+            {isTypingFullName} is typing ...
+          </p>
+        )}
       </div>
     </div>
   );

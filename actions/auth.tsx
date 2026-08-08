@@ -340,3 +340,16 @@ export async function allActiveUsers() {
     },
   });
 }
+
+export async function getUserFromSesion(sessionId: string) {
+  const result = await prisma.session.findUnique({
+    where: {
+      id: sessionId,
+    },
+    include: {
+      user: true,
+    },
+  });
+
+  return result?.user ?? null;
+}

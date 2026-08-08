@@ -22,8 +22,9 @@ model User {
   avatarURL               String?
   bio                     String?
   isVerified              Boolean     @default(false)
+  lastSeen                DateTime?
 
-  status                  Status      @default(ACTIVE)
+  status                  Status      @default(BANNED)
   role                    Role        @default(USER)
 
   createdAt               DateTime    @default(now())
@@ -39,8 +40,11 @@ model User {
   sentNotifications       Notification[]          @relation("sentNotifications")
   receivedNotifications   Notification[]          @relation("receivedNotifications")
 
-  sentMessages            Message[]               @relation("sentMessages")
+  sentMessages            Message[]               @relation("sentMessage")
   receivedMessages        Message[]               @relation("receivedMessages")
+
+  conversationAsUser1     Conversation[]          @relation("user1")
+  conversationAsUser2     Conversation[]          @relation("user2")
 }
 
 model Message {
@@ -50,14 +54,36 @@ model Message {
 
   senderId                String
   receiverId              String
+  conversationId          String
 
-  sender                  User        @relation("sentMessages" ,fields: [senderId], references: [id], onDelete: Cascade)
+  sender                  User        @relation("sentMessage" ,fields: [senderId], references: [id], onDelete: Cascade)
+  conversation            Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   receiver                User        @relation("receivedMessages" ,fields: [receiverId], references: [id], onDelete: Cascade)
+
+  seenAt                  DateTime?
+
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  
+  @@index([senderId, receiverId])
+  @@index([conversationId, createdAt])
+}
+
+model Conversation {
+  id                      String      @id @default(cuid())
+
+  user1Id                 String
+  user2Id                 String
+
+  user1                   User        @relation("user1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2                   User        @relation("user2", fields: [user2Id], references: [id], onDelete: Cascade)
+
+  messages                Message[]
 
   createdAt               DateTime    @default(now())
   updatedAt               DateTime    @updatedAt
 
-  @@index([senderId, receiverId])
+  @@unique([user1Id, user2Id])
 }
 
 model Session {

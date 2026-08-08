@@ -1,7 +1,7 @@
 import { ChevronRight, Plus, Search } from "lucide-react";
 import Image from "next/image";
 import { type Dispatch, type SetStateAction, useState } from "react";
-import type { ConversationItem } from "@/app/(main)/messages/page";
+import type { Conversation } from "@/app/(main)/messages/_messages.tsx";
 import type { User } from "@/app/generated/prisma/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,26 +11,60 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { socket } from "@/lib/socket";
 import { ScrollArea } from "../ui/scroll-area";
 
-type CustomUser = Omit<User, "password">;
+export type CustomUser = Omit<User, "password">;
 
 export default function SendMessageDialog({
   setActiveConversation,
   setPanelOpenState,
-  users,
+  activeUsers,
+  currentUserId,
+  setMessage,
 }: {
-  users: CustomUser[];
-  setActiveConversation: Dispatch<SetStateAction<ConversationItem | null>>;
+  activeUsers: CustomUser[];
+  setActiveConversation: Dispatch<SetStateAction<Conversation | null>>;
   setPanelOpenState: Dispatch<SetStateAction<boolean>>;
+  currentUserId: string;
+  setMessage: Dispatch<SetStateAction<string>>;
 }) {
   const [openState, setOpenState] = useState(false);
 
-  const handleOpenPanel = (user: any) => {
-    setActiveConversation(user);
+  const handleOpenPanel = (conversation: CustomUser) => {
+    socket.emit("open-chat", {
+      currentUserId,
+      otherUserId: conversation.id,
+    });
+
+    setMessage("");
+
+    setActiveConversation({
+      id: conversation.id,
+      fullName: conversation.fullName,
+      username: conversation.username,
+      avatarURL: conversation.avatarURL,
+      conversationId: "",
+      lastMessage: null,
+      lastMessageAt: null,
+      unreadCount: null,
+      lastSeen: null,
+    });
+
     setPanelOpenState(true);
     setOpenState(false);
   };
+
+  // const handleOpenPanel = (user: CustomUser) => {
+  //   socket.emit("open-chat", {
+  //     currentUserId,
+  //     otherUserId: user.id,
+  //   });
+
+  //   setMessage("");
+
+  //   setOpenState(false);
+  // };
 
   return (
     <Dialog onOpenChange={setOpenState} open={openState}>
@@ -70,7 +104,7 @@ export default function SendMessageDialog({
           {/* Users */}
           <ScrollArea className="scrollbar-thin h-[320px] rounded-lg border border-border/50">
             <div className="p-2">
-              {users.map((user) => (
+              {activeUsers.map((user) => (
                 <Button
                   className="group flex h-auto w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all duration-200 hover:bg-accent/60 active:scale-[0.98]"
                   key={user.id}
@@ -97,12 +131,6 @@ export default function SendMessageDialog({
                         </span>
                       )}
                     </div>
-                    {/* 
-                    {user.isOnline && (
-                      <span className="absolute right-0 bottom-0 h-2.5 w-2.5 rounded-full border-2 border-card bg-success" />
-                    )} */}
-
-                    <span className="absolute right-0 bottom-0 h-2.5 w-2.5 rounded-full border-2 border-card bg-success" />
                   </div>
 
                   <div className="min-w-0 flex-1">
