@@ -166,8 +166,10 @@ io.on("connection", async (socket) => {
 
     // console.log(newMessage);
 
+    const senderId = currentUser.id;
+
     const receiverId =
-      conversation.user1Id === newMessage.senderId
+      conversation.user1Id === senderId
         ? conversation.user2Id
         : conversation.user1Id;
 
@@ -175,7 +177,7 @@ io.on("connection", async (socket) => {
       data: {
         text: newMessage.text,
         conversationId: newMessage.conversationId,
-        senderId: newMessage.senderId,
+        senderId: currentUser.id,
         receiverId,
       },
     });
@@ -201,6 +203,56 @@ io.on("connection", async (socket) => {
       userId: currentUser.id,
     })
   );
+
+  socket.on("message-seen", async ({ messageId }) => {
+    const currentUserId = currentUser.id;
+
+    const message = await prisma.message.findUnique({
+      where: {
+        id: messageId,
+      },
+      select: {
+        id: true,
+        conversationId: true,
+        receiverId: true,
+        createdAt: true,
+      },
+    });
+
+    if (!message) {
+      return;
+    }
+
+    if (message.receiverId !== currentUserId) {
+      return;
+    }
+
+    const seenAt = new Date();
+
+    const result = await prisma.message.updateMany({
+      where: {
+        conversationId: message.conversationId,
+        receiverId: currentUserId,
+        seenAt: null,
+        createdAt: {
+          lte: message.createdAt,
+        },
+      },
+      data: {
+        seenAt,
+      },
+    });
+
+    if (result.count === 0) {
+      return;
+    }
+
+    io.to(message.conversationId).emit("message-seen", {
+      conversationId: message.conversationId,
+      messageId: message.id,
+      seenAt,
+    });
+  });
 
   socket.on("disconnect", async () => {
     // console.log("Socket disconnected: ", socket.id);

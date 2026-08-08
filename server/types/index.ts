@@ -6,7 +6,7 @@ export interface OpenChat {
 export interface NewMessage {
   conversationId: string;
   createdAt: Date;
-  receiverId: string;
-  senderId: string;
+  // receiverId: string;
+  // senderId: string;
   text: string;
 }

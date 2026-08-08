@@ -14,17 +14,19 @@ import type {
 } from "@/app/(main)/messages/_messages.tsx";
 import type { Message } from "@/app/generated/prisma/client";
 import { socket } from "@/lib/socket";
-import { cn } from "@/lib/utils";
 import { formatLastSeen } from "@/lib/utils/format-last-seen";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { ScrollArea } from "../ui/scroll-area";
+import EmojiPickerPopOver from "./emoji-picker-popover";
+import MessageItem from "./message-item";
 
 interface NewMessage {
   conversationId: string;
   createdAt: Date;
-  receiverId: string;
-  senderId: string;
+  // receiverId: string;
+  // seenAt: string | null;
+  // senderId: string;
   text: string;
 }
 
@@ -87,6 +89,54 @@ export default function MessagePanel({
   }, []);
 
   useEffect(() => {
+    const handleMessagesSeen = ({
+      conversationId,
+      messageId,
+      seenAt,
+    }: {
+      conversationId: string;
+      messageId: string;
+      seenAt: string;
+    }) => {
+      setAllMessages((currentMessages) => {
+        const targetMessage = currentMessages.find(
+          (message) => message.id === messageId
+        );
+
+        if (!targetMessage) {
+          return currentMessages;
+        }
+
+        const targetTime = new Date(targetMessage.createdAt).getTime();
+
+        return currentMessages.map((message) => {
+          const messageTime = new Date(message.createdAt).getTime();
+
+          if (
+            message.conversationId === conversationId &&
+            message.senderId === currentUserId &&
+            message.seenAt === null &&
+            messageTime <= targetTime
+          ) {
+            return {
+              ...message,
+              seenAt: new Date(seenAt),
+            };
+          }
+
+          return message;
+        });
+      });
+    };
+
+    socket.on("message-seen", handleMessagesSeen);
+
+    return () => {
+      socket.off("message-seen", handleMessagesSeen);
+    };
+  }, [currentUserId]);
+
+  useEffect(() => {
     const handleStartUserTyping = ({
       userId,
       fullname,
@@ -137,8 +187,8 @@ export default function MessagePanel({
 
     const newMessage: NewMessage = {
       text: message,
-      receiverId: otherUserId,
-      senderId: currentUserId,
+      // receiverId: otherUserId,
+      // senderId: currentUserId,
       conversationId,
       createdAt: new Date(),
     };
@@ -278,7 +328,7 @@ export default function MessagePanel({
           </div>
         ) : (
           <div className="space-y-1 px-5 py-6">
-            {allMessages.map((message: Message) => {
+            {/* {allMessages.map((message: Message) => {
               const isMine = message.senderId === currentUserId;
 
               const time = new Date(message.createdAt).toLocaleTimeString(
@@ -335,7 +385,16 @@ export default function MessagePanel({
                   </div>
                 </div>
               );
-            })}
+            })} */}
+
+            {allMessages.map((message: Message) => (
+              <MessageItem
+                currentUserId={currentUserId}
+                key={message.id}
+                message={message}
+                otherUserFullName={activeConversation.fullName}
+              />
+            ))}
           </div>
         )}
       </ScrollArea>
@@ -361,6 +420,10 @@ export default function MessagePanel({
           >
             <Send className="h-4 w-4" />
           </Button>
+
+          {/* <EmojiPickerPopOver /> */}
+
+          <EmojiPickerPopOver setMessage={setMessage} />
         </form>
         {isTyping && (
           <p className="mt-1 bg-transparent text-muted-foreground text-xs">
