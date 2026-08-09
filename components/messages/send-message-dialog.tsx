@@ -31,6 +31,8 @@ export default function SendMessageDialog({
 }) {
   const [openState, setOpenState] = useState(false);
 
+  const [searchQuery, setSearchQuery] = useState("");
+
   const handleOpenPanel = (conversation: CustomUser) => {
     socket.emit("open-chat", {
       currentUserId,
@@ -67,6 +69,16 @@ export default function SendMessageDialog({
   //   setOpenState(false);
   // };
 
+  const filteredconversations = activeUsers.filter((chat) => {
+    const query = searchQuery.trim().toLowerCase();
+
+    if (!query) {
+      return true;
+    }
+
+    return chat.fullName.toLowerCase().includes(query);
+  });
+
   return (
     <Dialog onOpenChange={setOpenState} open={openState}>
       <DialogTrigger
@@ -98,6 +110,7 @@ export default function SendMessageDialog({
 
             <Input
               className="bg-background/50 pl-10"
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search users..."
             />
           </div>
@@ -105,48 +118,70 @@ export default function SendMessageDialog({
           {/* Users */}
           <ScrollArea className="scrollbar-thin h-[320px] rounded-lg border border-border/50">
             <div className="p-2">
-              {activeUsers.map((user) => (
-                <Button
-                  className="group flex h-auto w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all duration-200 hover:bg-accent/60 active:scale-[0.98]"
-                  key={user.id}
-                  onClick={() => {
-                    handleOpenPanel(user);
-                  }}
-                  variant="ghost"
-                >
-                  <div className="relative shrink-0">
-                    <div
-                      className="flex h-10 w-10 items-center justify-center rounded-full font-semibold text-sm text-white"
-                      //   style={{ backgroundColor: user.avatarColor }}
-                    >
-                      {user.avatarURL ? (
-                        <Image
-                          alt="user profile"
-                          className="rounded-full object-cover"
-                          fill
-                          src={user.avatarURL}
-                        />
-                      ) : (
-                        <span className="flex h-full w-full items-center justify-center rounded-full bg-muted text-xs">
-                          {user.fullName.charAt(0)}
-                        </span>
-                      )}
+              {filteredconversations.length ? (
+                filteredconversations.map((user) => (
+                  <Button
+                    className="group flex h-auto w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all duration-200 hover:bg-accent/60 active:scale-[0.98]"
+                    key={user.id}
+                    onClick={() => {
+                      handleOpenPanel(user);
+                    }}
+                    variant="ghost"
+                  >
+                    <div className="relative shrink-0">
+                      <div
+                        className="flex h-10 w-10 items-center justify-center rounded-full font-semibold text-sm text-white"
+                        //   style={{ backgroundColor: user.avatarColor }}
+                      >
+                        {user.avatarURL ? (
+                          <Image
+                            alt="user profile"
+                            className="rounded-full object-cover"
+                            fill
+                            src={user.avatarURL}
+                          />
+                        ) : (
+                          <span className="flex h-full w-full items-center justify-center rounded-full bg-muted text-xs">
+                            {user.fullName.charAt(0)}
+                          </span>
+                        )}
+                      </div>
                     </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-foreground text-sm">
+                        {user.fullName}
+                      </p>
+
+                      <p className="truncate text-muted-foreground text-xs">
+                        @{user.username}
+                      </p>
+                    </div>
+
+                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-foreground" />
+                  </Button>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center px-4 py-10 text-center">
+                  <div className="relative flex h-12 w-12 items-center justify-center rounded-xl border border-border/60 bg-primary/10">
+                    <div className="absolute inset-0 rounded-xl bg-primary/10 blur-lg" />
+
+                    <Search
+                      className="relative text-primary"
+                      size={22}
+                      strokeWidth={1.8}
+                    />
                   </div>
 
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-foreground text-sm">
-                      {user.fullName}
-                    </p>
+                  <h3 className="mt-4 font-semibold text-foreground text-sm">
+                    No users found
+                  </h3>
 
-                    <p className="truncate text-muted-foreground text-xs">
-                      @{user.username}
-                    </p>
-                  </div>
-
-                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-foreground" />
-                </Button>
-              ))}
+                  <p className="mt-1.5 max-w-[200px] text-muted-foreground text-xs leading-5">
+                    We couldn&apos;t find anyone matching your search.
+                  </p>
+                </div>
+              )}
             </div>
           </ScrollArea>
         </div>
