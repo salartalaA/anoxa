@@ -41,13 +41,21 @@ export async function getCurrentUserConversations() {
         },
         take: 1,
       },
-    },
-    orderBy: {
-      createdAt: "desc",
+
+      _count: {
+        select: {
+          messages: {
+            where: {
+              receiverId: currentUser.id,
+              seenAt: null,
+            },
+          },
+        },
+      },
     },
   });
 
-  return conversations.map((conversation) => {
+  const chats = conversations.map((conversation) => {
     const receiver =
       conversation.user1Id === currentUser.id
         ? conversation.user2
@@ -72,7 +80,17 @@ export async function getCurrentUserConversations() {
 
       lastSeen: receiver.lastSeen,
 
-      unreadCount: null,
+      unreadCount: conversation._count.messages ?? 0,
+
+      currentUserId: currentUser.id,
     };
+  });
+
+  return chats.sort((a, b) => {
+    const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+
+    const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+
+    return bTime - aTime;
   });
 }

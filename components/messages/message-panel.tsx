@@ -1,4 +1,4 @@
-import { Loader2, Send, X } from "lucide-react";
+import { Loader2, MessageCircle, Send, X } from "lucide-react";
 import Image from "next/image";
 import {
   type Dispatch,
@@ -15,6 +15,10 @@ import type {
 import type { Message } from "@/app/generated/prisma/client";
 import { socket } from "@/lib/socket";
 import { formatLastSeen } from "@/lib/utils/format-last-seen";
+import {
+  formatMessageDate,
+  getMessageDateKey,
+} from "@/lib/utils/format-message-date";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { ScrollArea } from "../ui/scroll-area";
@@ -65,26 +69,96 @@ export default function MessagePanel({
 
   const [isTypingFullName, setIsTypingFullName] = useState("");
 
+  const [isEditing, setIsEditing] = useState(false);
+
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // useEffect(() => {
+  //   if (!oldMessages) {
+  //     return;
+  //   }
+
+  //   setAllMessages(oldMessages.oldMessages);
+  //   setIsLoadingMessages(false);
+  // }, [oldMessages]);
 
   useEffect(() => {
     if (!oldMessages) {
       return;
     }
 
-    setAllMessages(oldMessages.oldMessages);
+    setAllMessages((currentMessages) => {
+      const messagesMap = new Map<string, Message>();
+
+      for (const message of currentMessages) {
+        messagesMap.set(message.id, message);
+      }
+
+      for (const message of oldMessages.oldMessages) {
+        messagesMap.set(message.id, message);
+      }
+
+      return Array.from(messagesMap.values()).sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
+    });
+
     setIsLoadingMessages(false);
   }, [oldMessages]);
 
   useEffect(() => {
     socket.on("receive-new-message", (newMessage: Message) => {
-      setAllMessages((prev) => [...prev, newMessage]);
+      setAllMessages((prev) => {
+        if (prev.some((message) => message.id === newMessage.id)) {
+          return prev;
+        }
+
+        return [...prev, newMessage].sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      });
 
       setIsLoadingMessages(false);
     });
 
+    socket.on("message-deleted", ({ messageId }: { messageId: string }) => {
+      setAllMessages((prev) => prev.filter((msg) => msg.id !== messageId));
+    });
+
+    const handleMessageEdited = ({
+      messageId,
+      messageText,
+      isEdited,
+    }: {
+      messageId: string;
+      messageText: string;
+      isEdited: boolean;
+    }) => {
+      setAllMessages((prev) =>
+        prev.map((message) =>
+          message.id === messageId
+            ? {
+                ...message,
+                text: messageText,
+                isEdited,
+              }
+            : message
+        )
+      );
+    };
+
+    socket.on("message-edited", handleMessageEdited);
+
     return () => {
       socket.off("receive-new-message");
+      socket.off("message-deleted");
+      socket.off("message-edited", handleMessageEdited);
     };
   }, []);
 
@@ -178,17 +252,57 @@ export default function MessagePanel({
     []
   );
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Need for auto scroll
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [allMessages]);
+
+  // const handleSendNewMessage = (e: SyntheticEvent<Element, Event>) => {
+  //   e.preventDefault();
+
+  //   if (!message || message.trim() === "") {
+  //     return null;
+  //   }
+
+  //   const newMessage: NewMessage = {
+  //     text: message,
+  //     // receiverId: otherUserId,
+  //     // senderId: currentUserId,
+  //     conversationId,
+  //     createdAt: new Date(),
+  //   };
+
+  //   socket.emit("send-new-message", newMessage);
+
+  //   setMessage("");
+  // };
+
   const handleSendNewMessage = (e: SyntheticEvent<Element, Event>) => {
     e.preventDefault();
 
-    if (!message || message.trim() === "") {
-      return null;
+    const text = message.trim();
+
+    if (!text) {
+      return;
+    }
+
+    if (isEditing && editingMessageId) {
+      socket.emit("edit-message", {
+        messageId: editingMessageId,
+        messageText: text,
+      });
+
+      setMessage("");
+      setIsEditing(false);
+      setEditingMessageId(null);
+
+      return;
     }
 
     const newMessage: NewMessage = {
-      text: message,
-      // receiverId: otherUserId,
-      // senderId: currentUserId,
+      text,
       conversationId,
       createdAt: new Date(),
     };
@@ -320,6 +434,10 @@ export default function MessagePanel({
 
         {allMessages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center">
+            <div className="relative mb-2 flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10">
+              <div className="absolute inset-0 rounded-2xl bg-primary/5 blur-xl" />
+              <MessageCircle className="text-primary" size={40} />
+            </div>
             <p className="font-medium text-foreground">No messages yet</p>
 
             <p className="mt-1 text-muted-foreground text-sm">
@@ -327,75 +445,60 @@ export default function MessagePanel({
             </p>
           </div>
         ) : (
-          <div className="space-y-1 px-5 py-6">
-            {/* {allMessages.map((message: Message) => {
-              const isMine = message.senderId === currentUserId;
-
-              const time = new Date(message.createdAt).toLocaleTimeString(
-                "en-US",
-                {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: false,
-                }
-              );
-
-              return (
-                <div
-                  className={cn(
-                    "mt-2.5 flex animate-message-in items-end gap-2.5",
-                    isMine ? "justify-end" : "justify-start"
-                  )}
+          <>
+            <div className="space-y-1 px-5 py-6">
+              {/* {allMessages.map((message: Message) => (
+                <MessageItem
+                  currentUserId={currentUserId}
+                  editingMessageId={editingMessageId}
+                  isEditing={isEditing}
                   key={message.id}
-                >
-                  {!isMine && (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border font-semibold text-foreground text-xs">
-                      {activeConversation.fullName.charAt(0)}
-                    </div>
-                  )}
+                  message={message}
+                  otherUserAvatarURL={activeConversation.avatarURL}
+                  otherUserFullName={activeConversation.fullName}
+                  setEditingMessageId={setEditingMessageId}
+                  setIsEditing={setIsEditing}
+                  setMessage={setMessage}
+                /> */}
+              {allMessages.map((message: Message, index: number) => {
+                const currentDateKey = getMessageDateKey(message.createdAt);
 
-                  <div
-                    className={cn(
-                      "flex max-w-[70%] flex-col",
-                      isMine && "items-end"
+                const previousMessage = allMessages[index - 1];
+
+                const previousDateKey = previousMessage
+                  ? getMessageDateKey(previousMessage.createdAt)
+                  : null;
+
+                const shouldShowDate =
+                  !previousMessage || currentDateKey !== previousDateKey;
+
+                return (
+                  <div key={message.id}>
+                    {shouldShowDate && (
+                      <div className="my-4 flex justify-center">
+                        <div className="rounded-full bg-muted/80 px-3 py-1 font-medium text-muted-foreground text-xs shadow-sm">
+                          {formatMessageDate(message.createdAt)}
+                        </div>
+                      </div>
                     )}
-                  >
-                    <div
-                      className={cn(
-                        "rounded-2xl px-4 py-2.5 text-sm shadow-sm",
-                        isMine
-                          ? "rounded-br-md bg-primary text-secondary-foreground"
-                          : "rounded-bl-md bg-secondary text-secondary-foreground"
-                      )}
-                    >
-                      {message.text}
-                    </div>
 
-                    <div className="mt-1 flex items-center gap-1.5 px-1">
-                      <span className="text-muted-foreground text-xs">
-                        {time}
-                      </span>
-
-                      {isMine && (
-                        <span className="text-muted-foreground/70 text-xs">
-                          · delivered
-                        </span>
-                      )}
-                    </div>
+                    <MessageItem
+                      currentUserId={currentUserId}
+                      editingMessageId={editingMessageId}
+                      isEditing={isEditing}
+                      message={message}
+                      otherUserAvatarURL={activeConversation.avatarURL}
+                      otherUserFullName={activeConversation.fullName}
+                      setEditingMessageId={setEditingMessageId}
+                      setIsEditing={setIsEditing}
+                      setMessage={setMessage}
+                    />
                   </div>
-                </div>
-              );
-            })} */}
-
-            {allMessages.map((message: Message) => (
-              <MessageItem
-                currentUserId={currentUserId}
-                key={message.id}
-                message={message}
-                otherUserFullName={activeConversation.fullName}
-              />
-            ))}
-          </div>
+                );
+              })}
+            </div>
+            <div ref={messagesEndRef} />
+          </>
         )}
       </ScrollArea>
 
@@ -412,8 +515,25 @@ export default function MessagePanel({
             value={message}
           />
 
+          {isEditing && (
+            <Button
+              className="h-10 w-10 shrink-0"
+              onClick={() => {
+                setIsEditing(false);
+                setEditingMessageId(null);
+                setMessage("");
+              }}
+              size="icon"
+              type="submit"
+              variant={"destructive"}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+
           <Button
             className="h-10 w-10 shrink-0"
+            disabled={!message}
             onClick={handleSendNewMessage}
             size="icon"
             type="submit"

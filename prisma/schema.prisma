@@ -62,6 +62,8 @@ model Message {
 
   seenAt                  DateTime?
 
+  isEdited                Boolean?     @default(false)
+
   createdAt               DateTime    @default(now())
   updatedAt               DateTime    @updatedAt
   

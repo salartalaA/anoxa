@@ -47,8 +47,9 @@ export default function SendMessageDialog({
       conversationId: "",
       lastMessage: null,
       lastMessageAt: null,
-      unreadCount: null,
+      unreadCount: 0,
       lastSeen: null,
+      currentUserId,
     });
 
     setPanelOpenState(true);

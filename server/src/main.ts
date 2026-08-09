@@ -87,9 +87,13 @@ io.on("connection", async (socket) => {
 
   onlineUsers.set(socket.id, currentUser.id);
 
+  socket.join(`user:${currentUser.id}`);
+
   io.emit("user-online", currentUser.id);
 
-  socket.emit("online-users", { users: Array.from(onlineUsers.values()) });
+  socket.emit("online-users", {
+    users: Array.from(onlineUsers.values()),
+  });
 
   socket.on("open-chat", async (openConversationData: OpenChat) => {
     // console.log("BREAK");
@@ -127,6 +131,17 @@ io.on("connection", async (socket) => {
 
     activeConversationMap.set(socket.id, conversation.id);
 
+    await prisma.message.updateMany({
+      where: {
+        conversationId: conversation.id,
+        receiverId: currentUser.id,
+        seenAt: null,
+      },
+      data: {
+        seenAt: new Date(),
+      },
+    });
+
     const oldMessages = await prisma.message.findMany({
       where: {
         conversationId: conversation.id,
@@ -151,62 +166,7 @@ io.on("connection", async (socket) => {
     });
   });
 
-  socket.on("send-new-message", async (newMessage: NewMessage) => {
-    // console.log("New message from server: ", newMessage);
-
-    const conversation = await prisma.conversation.findUnique({
-      where: {
-        id: newMessage.conversationId,
-      },
-    });
-
-    if (!conversation) {
-      return;
-    }
-
-    // console.log(newMessage);
-
-    const senderId = currentUser.id;
-
-    const receiverId =
-      conversation.user1Id === senderId
-        ? conversation.user2Id
-        : conversation.user1Id;
-
-    const saveMessage = await prisma.message.create({
-      data: {
-        text: newMessage.text,
-        conversationId: newMessage.conversationId,
-        senderId: currentUser.id,
-        receiverId,
-      },
-    });
-
-    // console.log(saveMessage);
-
-    if (!conversation) {
-      return console.log("Something wrong!");
-    }
-
-    io.to(conversation.id).emit("receive-new-message", saveMessage);
-  });
-
-  socket.on("start-typing", ({ conversationId }) =>
-    socket.to(conversationId).emit("start-user-typing", {
-      userId: currentUser.id,
-      fullname: currentUser.fullName,
-    })
-  );
-
-  socket.on("stop-typing", ({ conversationId }) =>
-    socket.to(conversationId).emit("stop-user-typing", {
-      userId: currentUser.id,
-    })
-  );
-
   socket.on("message-seen", async ({ messageId }) => {
-    const currentUserId = currentUser.id;
-
     const message = await prisma.message.findUnique({
       where: {
         id: messageId,
@@ -223,7 +183,7 @@ io.on("connection", async (socket) => {
       return;
     }
 
-    if (message.receiverId !== currentUserId) {
+    if (message.receiverId !== currentUser.id) {
       return;
     }
 
@@ -232,12 +192,13 @@ io.on("connection", async (socket) => {
     const result = await prisma.message.updateMany({
       where: {
         conversationId: message.conversationId,
-        receiverId: currentUserId,
+        receiverId: currentUser.id,
         seenAt: null,
         createdAt: {
           lte: message.createdAt,
         },
       },
+
       data: {
         seenAt,
       },
@@ -247,10 +208,218 @@ io.on("connection", async (socket) => {
       return;
     }
 
+    // io.to(message.conversationId).emit("message-seen", {
+    //   conversationId: message.conversationId,
+    //   messageId: message.id,
+    //   seenAt,
+    // });
+
     io.to(message.conversationId).emit("message-seen", {
       conversationId: message.conversationId,
       messageId: message.id,
       seenAt,
+    });
+
+    io.to(`user:${currentUser.id}`).emit("message-seen", {
+      conversationId: message.conversationId,
+      messageId: message.id,
+      seenAt,
+    });
+  });
+
+  socket.on("send-new-message", async (newMessage: NewMessage) => {
+    const conversation = await prisma.conversation.findUnique({
+      where: {
+        id: newMessage.conversationId,
+      },
+    });
+
+    if (!conversation) {
+      return;
+    }
+
+    const senderId = currentUser.id;
+
+    const receiverId =
+      conversation.user1Id === senderId
+        ? conversation.user2Id
+        : conversation.user1Id;
+
+    const saveMessage = await prisma.message.create({
+      data: {
+        text: newMessage.text,
+        conversationId: newMessage.conversationId,
+        senderId,
+        receiverId,
+      },
+    });
+
+    const unreadCount = await prisma.message.count({
+      where: {
+        conversationId: conversation.id,
+        receiverId,
+        seenAt: null,
+      },
+    });
+
+    const receiverSockets = await io.in(`user:${receiverId}`).fetchSockets();
+
+    const receiverIsInConversation = receiverSockets.some(
+      (socket) => activeConversationMap.get(socket.id) === conversation.id
+    );
+
+    const finalUnreadCount = receiverIsInConversation ? 0 : unreadCount;
+
+    const sender = await prisma.user.findUnique({
+      where: {
+        id: senderId,
+      },
+      select: {
+        id: true,
+        fullName: true,
+        username: true,
+        avatarURL: true,
+        lastSeen: true,
+      },
+    });
+
+    const receiver = await prisma.user.findUnique({
+      where: {
+        id: receiverId,
+      },
+      select: {
+        id: true,
+        fullName: true,
+        username: true,
+        avatarURL: true,
+        lastSeen: true,
+      },
+    });
+
+    io.to(conversation.id).emit("receive-new-message", saveMessage);
+
+    io.to(`user:${senderId}`).emit("conversation-updated", {
+      conversationId: conversation.id,
+      lastMessage: saveMessage,
+      unreadCount: 0,
+      otherUser: receiver,
+    });
+
+    io.to(`user:${receiverId}`).emit("conversation-updated", {
+      conversationId: conversation.id,
+      lastMessage: saveMessage,
+      unreadCount: finalUnreadCount,
+      otherUser: sender,
+    });
+  });
+
+  socket.on("start-typing", ({ conversationId }) =>
+    socket.to(conversationId).emit("start-user-typing", {
+      userId: currentUser.id,
+      fullname: currentUser.fullName,
+    })
+  );
+
+  socket.on("stop-typing", ({ conversationId }) =>
+    socket.to(conversationId).emit("stop-user-typing", {
+      userId: currentUser.id,
+    })
+  );
+
+  socket.on("delete-message", async ({ messageId }) => {
+    const message = await prisma.message.findUnique({
+      where: {
+        id: messageId,
+      },
+    });
+
+    if (!message) {
+      return;
+    }
+
+    if (message.senderId !== currentUser.id) {
+      return;
+    }
+
+    await prisma.message.delete({
+      where: {
+        id: messageId,
+      },
+    });
+
+    const lastMessage = await prisma.message.findFirst({
+      where: {
+        conversationId: message.conversationId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    const unreadCount = await prisma.message.count({
+      where: {
+        conversationId: message.conversationId,
+        receiverId: message.receiverId,
+        seenAt: null,
+      },
+    });
+
+    io.to(message.conversationId).emit("message-deleted", {
+      messageId,
+    });
+
+    io.to(`user:${message.senderId}`).emit("conversation-updated", {
+      conversationId: message.conversationId,
+      lastMessage,
+      unreadCount: 0,
+    });
+
+    io.to(`user:${message.receiverId}`).emit("conversation-updated", {
+      conversationId: message.conversationId,
+      lastMessage,
+      unreadCount,
+    });
+  });
+
+  socket.on("edit-message", async ({ messageId, messageText }) => {
+    const message = await prisma.message.findUnique({
+      where: {
+        id: messageId,
+      },
+    });
+
+    if (!message) {
+      return;
+    }
+
+    if (message.senderId !== currentUser.id) {
+      return;
+    }
+
+    const updatedMessage = await prisma.message.update({
+      where: {
+        id: messageId,
+      },
+      data: {
+        text: messageText,
+        isEdited: true,
+      },
+    });
+
+    io.to(message.conversationId).emit("message-edited", {
+      messageId: updatedMessage.id,
+      messageText: updatedMessage.text,
+      isEdited: true,
+    });
+
+    io.to(`user:${message.senderId}`).emit("conversation-updated", {
+      conversationId: message.conversationId,
+      lastMessage: updatedMessage,
+    });
+
+    io.to(`user:${message.receiverId}`).emit("conversation-updated", {
+      conversationId: message.conversationId,
+      lastMessage: updatedMessage,
     });
   });
 
@@ -262,6 +431,10 @@ io.on("connection", async (socket) => {
     // console.log(`${userId} is now Offline!`);
 
     onlineUsers.delete(socket.id);
+
+    if (!userId) {
+      return;
+    }
 
     await prisma.user.update({
       where: {
