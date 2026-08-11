@@ -35,6 +35,7 @@ import {
 import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/utils/time-ago";
 import { type CommentData, commentSchema } from "@/schemas/feed.schema";
+import { ReportComment } from "../report-comment";
 import { Textarea } from "../ui/textarea";
 
 type CommentWithAuthor = Prisma.CommentGetPayload<{
@@ -331,7 +332,7 @@ export default function PostInteractiveButtons({
                         )}
                       </div>
 
-                      {comment.isOwner && (
+                      {/* {comment.isOwner && (
                         <div className="flex items-center gap-x-2">
                           <Pencil
                             className="text-primary"
@@ -350,7 +351,33 @@ export default function PostInteractiveButtons({
                             size={18}
                           />
                         </div>
-                      )}
+                      )} */}
+
+                      <div className="flex items-center gap-x-2">
+                        {comment.isOwner ? (
+                          <>
+                            <Pencil
+                              className="text-primary"
+                              onClick={() => {
+                                setIsCommentEditing({
+                                  id: comment.id,
+                                  comment: comment.content,
+                                });
+                                setValue("content", comment.content);
+                              }}
+                              size={15}
+                            />
+
+                            <Trash2
+                              className="text-destructive"
+                              onClick={() => handleDeleteComment(comment.id)}
+                              size={18}
+                            />
+                          </>
+                        ) : (
+                          <ReportComment commentId={comment.id} />
+                        )}
+                      </div>
                     </div>
 
                     <p className="mt-1 text-start text-sm leading-relaxed">

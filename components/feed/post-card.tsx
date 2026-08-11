@@ -66,7 +66,11 @@ export default async function PostCard() {
             </div>
           </Link>
 
-          {post.isOwner ? <PostActions post={post} /> : <ReportPost />}
+          {post.isOwner ? (
+            <PostActions post={post} />
+          ) : (
+            <ReportPost postId={post.id} />
+          )}
         </div>
       </div>
       <div className="p-0">

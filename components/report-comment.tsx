@@ -4,7 +4,7 @@ import { Ellipsis, Flag } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { requireActiveUser } from "@/actions/auth";
-import { reportPost } from "@/actions/reports";
+import { reportcomment } from "@/actions/reports";
 import type { ReportReason } from "@/app/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export function ReportPost({ postId }: { postId: string }) {
+export function ReportComment({ commentId }: { commentId: string }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedReason, setSelectedReason] = useState<ReportReason | null>(
     null
@@ -44,17 +44,7 @@ export function ReportPost({ postId }: { postId: string }) {
     setDialogOpen(true);
   };
 
-  const handleReportPost = async () => {
-    const result = await requireActiveUser();
-
-    if (!result.success && result.message) {
-      return toast.info(result.message, {
-        position: "top-right",
-        className: "bg-card! text-warning!",
-        closeButton: true,
-      });
-    }
-
+  const handleReportComment = async () => {
     if (!selectedReason) {
       return;
     }
@@ -62,22 +52,20 @@ export function ReportPost({ postId }: { postId: string }) {
     setIsSubmitting(true);
 
     try {
-      const reportResult = await reportPost(postId, selectedReason);
+      const result = await reportcomment(commentId, selectedReason);
 
-      if (!reportResult?.success) {
-        toast.info(reportResult?.message, {
+      if (!result?.success) {
+        return toast.info(result?.message, {
           position: "top-right",
           className: "bg-card! text-warning!",
           closeButton: true,
         });
-
-        return;
       }
 
       setDialogOpen(false);
       setSelectedReason(null);
 
-      toast.success("Post reported to moderators.", {
+      toast.success("Comment reported to moderators.", {
         position: "top-right",
         className: "bg-card! text-primary!",
         closeButton: true,
@@ -92,8 +80,8 @@ export function ReportPost({ postId }: { postId: string }) {
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <Button variant="ghost">
-              <Ellipsis size={20} />
+            <Button className="h-auto p-0" size="sm" variant="ghost">
+              <Ellipsis size={15} />
             </Button>
           }
         />
@@ -101,7 +89,7 @@ export function ReportPost({ postId }: { postId: string }) {
         <DropdownMenuContent>
           <DropdownMenuGroup>
             <DropdownMenuItem onClick={handleOpenDialog}>
-              <Flag size={20} />
+              <Flag size={16} />
               Report
             </DropdownMenuItem>
           </DropdownMenuGroup>
@@ -120,10 +108,10 @@ export function ReportPost({ postId }: { postId: string }) {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Report post</DialogTitle>
+            <DialogTitle>Report comment</DialogTitle>
 
             <DialogDescription>
-              Why are you reporting this post?
+              Why are you reporting this comment?
             </DialogDescription>
           </DialogHeader>
 
@@ -160,7 +148,7 @@ export function ReportPost({ postId }: { postId: string }) {
 
             <Button
               disabled={!selectedReason || isSubmitting}
-              onClick={handleReportPost}
+              onClick={handleReportComment}
             >
               {isSubmitting ? "Reporting..." : "Report"}
             </Button>

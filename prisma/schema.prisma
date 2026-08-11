@@ -45,6 +45,9 @@ model User {
 
   conversationAsUser1     Conversation[]          @relation("user1")
   conversationAsUser2     Conversation[]          @relation("user2")
+
+  postReports             PostReport[]
+  commentReports          CommentReport[]
 }
 
 model Message {
@@ -148,6 +151,7 @@ model Post {
   reactions               Reaction[]
   bookmarks               Bookmark[]
   notifications           Notification[]
+  postReports             PostReport[]
 
   createdAt               DateTime    @default(now())
   updatedAt               DateTime    @updatedAt
@@ -169,6 +173,8 @@ model Comment {
 
   createdAt               DateTime    @default(now())
   updatedAt               DateTime    @updatedAt
+
+  commentReports          CommentReport[]
 
   @@index([authorId])
   @@index([postId])
@@ -227,4 +233,56 @@ model PasswordResetToken {
   userId                  String
 
   user                    User        @relation(fields:[userId], references: [id], onDelete: Cascade)
+}
+
+model PostReport {
+  id                      String      @id @default(cuid())
+
+  userId                  String
+  postId                  String
+
+  reason                  ReportReason
+  reportStatus            ReportStatus  @default(PENDING)
+
+  createdAt               DateTime    @default(now())
+
+  user                    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post                    Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([postId])
+}
+
+model CommentReport {
+  id                      String      @id @default(cuid())
+
+  userId                  String
+  commentId               String
+
+  reason                  ReportReason
+
+  reportStatus            ReportStatus  @default(PENDING)
+
+  createdAt               DateTime      @default(now())
+
+  user                    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment                 Comment     @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@index([commentId])
+}
+
+enum ReportReason {
+  NUDITY
+  SPAM
+  HARASSMENT
+  VIOLENCE
+  HATE_SPEECH
+}
+
+enum ReportStatus {
+  PENDING
+  UNDER_REVIEW
+  RESOLVED
+  REJECTED
 }
