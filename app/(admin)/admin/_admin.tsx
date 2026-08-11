@@ -4,6 +4,8 @@ import { RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import Overview from "@/components/admin/overview";
+import PlatformActiviyChart from "@/components/admin/platform-activity-chart";
+import RecentActivity from "@/components/admin/recent-activities";
 import { Button } from "@/components/ui/button";
 
 export default function Admin() {
@@ -39,6 +41,12 @@ export default function Admin() {
         </div>
 
         <Overview />
+
+        <div className="flex gap-6">
+          <PlatformActiviyChart />
+
+          <RecentActivity />
+        </div>
       </div>
     </main>
   );
