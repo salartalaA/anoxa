@@ -35,7 +35,7 @@ export default async function MainLayout({
               </div>
             </Link>
             {semiPerm && (
-              <Link href="/admin">
+              <Link href="/admin" prefetch>
                 <Shield size={20} />
               </Link>
             )}

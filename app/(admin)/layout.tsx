@@ -27,7 +27,7 @@ export default async function AdminLayout({
                 </div>
               </div>
             </Link>
-            <Link href="/">
+            <Link href="/" prefetch>
               <Home size={20} />
             </Link>
           </div>
