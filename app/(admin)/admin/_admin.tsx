@@ -6,6 +6,7 @@ import { useTransition } from "react";
 import Overview from "@/components/admin/overview";
 import PlatformActiviyChart from "@/components/admin/platform-activity-chart";
 import RecentActivity from "@/components/admin/recent-activities";
+import RecentSignups from "@/components/admin/recent-signups";
 import { Button } from "@/components/ui/button";
 
 export default function Admin() {
@@ -47,6 +48,8 @@ export default function Admin() {
 
           <RecentActivity />
         </div>
+
+        <RecentSignups />
       </div>
     </main>
   );
