@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { requireActiveUser } from "@/actions/auth";
+import Admin from "@/app/(admin)/admin/_admin";
 import AdminMainHeader from "@/components/sidebar/admin/admin-main-header";
 
 export default async function AdminPage() {
@@ -14,9 +15,13 @@ export default async function AdminPage() {
   }
 
   return (
-    <AdminMainHeader
-      description="Overview of platform activity and key metrics."
-      title="Dashboard"
-    />
+    <>
+      <AdminMainHeader
+        description="Overview of platform activity and key metrics."
+        title="Dashboard"
+      />
+
+      <Admin />
+    </>
   );
 }
