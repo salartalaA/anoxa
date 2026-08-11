@@ -1,9 +1,9 @@
 "use server";
 
+import { requireActiveUser } from "@/actions//auth";
 import { Prisma } from "@/app/generated/prisma/client";
 import type { ReportReason } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma";
-import { requireActiveUser } from "./auth";
 
 export async function reportPost(postId: string, reportReason: ReportReason) {
   try {

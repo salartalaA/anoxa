@@ -3,8 +3,8 @@
 import { Ellipsis, Flag } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { reportPost } from "@/actions/admin/reports";
 import { requireActiveUser } from "@/actions/auth";
-import { reportPost } from "@/actions/reports";
 import type { ReportReason } from "@/app/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
 import {
