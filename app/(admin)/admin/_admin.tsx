@@ -3,6 +3,7 @@
 import { RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import type { PlatformActivity } from "@/actions/admin/dashboard";
 import Overview from "@/components/admin/overview";
 import PlatformActiviyChart from "@/components/admin/platform-activity-chart";
 import RecentActivity from "@/components/admin/recent-activities";
@@ -10,7 +11,13 @@ import RecentSignups from "@/components/admin/recent-signups";
 import { Button } from "@/components/ui/button";
 import type { DashboardStats } from "./page";
 
-export default function Admin({ stats }: { stats: DashboardStats }) {
+export default function Admin({
+  stats,
+  platformActivity,
+}: {
+  stats: DashboardStats;
+  platformActivity: PlatformActivity[];
+}) {
   const [isPending, startTransition] = useTransition();
 
   const router = useRouter();
@@ -45,7 +52,7 @@ export default function Admin({ stats }: { stats: DashboardStats }) {
         <Overview stats={stats} />
 
         <div className="flex gap-6">
-          <PlatformActiviyChart />
+          <PlatformActiviyChart platformActivity={platformActivity} />
 
           <RecentActivity />
         </div>

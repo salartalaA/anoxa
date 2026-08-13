@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { dashboardStats } from "@/actions/admin/overview";
+import { dashboardStats, getPlatformActivity } from "@/actions/admin/dashboard";
 import { requireActiveUser } from "@/actions/auth";
 import Admin from "@/app/(admin)/admin/_admin";
 import AdminMainHeader from "@/components/sidebar/admin/admin-main-header";
@@ -28,6 +28,8 @@ export default async function AdminPage() {
 
   const stats = await dashboardStats();
 
+  const platformActivity = await getPlatformActivity();
+
   return (
     <>
       <AdminMainHeader
@@ -35,7 +37,7 @@ export default async function AdminPage() {
         title="Dashboard"
       />
 
-      <Admin stats={stats} />
+      <Admin platformActivity={platformActivity} stats={stats} />
     </>
   );
 }
