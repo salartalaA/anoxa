@@ -7,7 +7,7 @@ export default async function AdminPage() {
   const currentUser = (await requireActiveUser()).user;
 
   if (!currentUser) {
-    return redirect("/login");
+    return redirect("/auth/login");
   }
 
   if (currentUser.role === "USER") {

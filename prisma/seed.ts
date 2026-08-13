@@ -27,6 +27,14 @@ const rolePermissionData: Prisma.RolePermissionCreateInput[] = [
     role: "MODERATOR",
     permission: "DELETE_OTHERS_POST",
   },
+  {
+    role: "MODERATOR",
+    permission: "SUSPEND_USER",
+  },
+  {
+    role: "MODERATOR",
+    permission: "UNSUSPEND_USER",
+  },
 
   {
     role: "ADMIN",

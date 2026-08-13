@@ -24,7 +24,7 @@ model User {
   isVerified Boolean   @default(false)
   lastSeen   DateTime?
 
-  status Status @default(BANNED)
+  status Status @default(ACTIVE)
   role   Role   @default(USER)
 
   createdAt DateTime @default(now())

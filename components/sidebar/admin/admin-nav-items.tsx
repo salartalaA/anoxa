@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  FileText,
   LayoutDashboard,
   MessageSquare,
   ScrollText,
@@ -46,6 +47,20 @@ export default function AdminNavItems() {
       <Link
         className={cn(
           "mt-1 flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
+          pathname === "/admin/posts"
+            ? "bg-sidebar-primary text-sidebar-primary-foreground"
+            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        )}
+        href="/admin/posts"
+        prefetch
+      >
+        <FileText size={20} />
+        Posts
+      </Link>
+
+      <Link
+        className={cn(
+          "mt-1 flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
           pathname === "/admin/comments"
             ? "bg-sidebar-primary text-sidebar-primary-foreground"
             : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -54,7 +69,7 @@ export default function AdminNavItems() {
         prefetch
       >
         <MessageSquare size={20} />
-        Messages
+        Comments
       </Link>
 
       <Link

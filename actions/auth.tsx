@@ -353,3 +353,27 @@ export async function getUserFromSesion(sessionId: string) {
 
   return result?.user ?? null;
 }
+
+export async function getAllUsers() {
+  const result = await requireActiveUser();
+
+  if (!result.success) {
+    return result;
+  }
+
+  const allUsers = await prisma.user.findMany({
+    omit: {
+      password: true,
+    },
+    where: {
+      role: {
+        not: "OWNER",
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return allUsers;
+}

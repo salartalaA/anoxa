@@ -6,7 +6,7 @@ export default async function AuditLogsPage() {
   const currentUser = (await requireActiveUser()).user;
 
   if (!currentUser) {
-    return redirect("/login");
+    return redirect("/auth/login");
   }
 
   if (currentUser.role === "USER") {
