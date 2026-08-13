@@ -1,7 +1,12 @@
 import { redirect } from "next/navigation";
-import { dashboardStats, getPlatformActivity } from "@/actions/admin/dashboard";
+import {
+  dashboardStats,
+  getPlatformActivity,
+  recentSignups,
+} from "@/actions/admin/dashboard";
 import { requireActiveUser } from "@/actions/auth";
 import Admin from "@/app/(admin)/admin/_admin";
+import type { User } from "@/app/generated/prisma/client";
 import AdminMainHeader from "@/components/sidebar/admin/admin-main-header";
 
 export interface DashboardStats {
@@ -14,6 +19,8 @@ export interface DashboardStats {
   totalUsers: number;
   verifiesUsers: number;
 }
+
+export type SecureUser = Omit<User, "password">;
 
 export default async function AdminPage() {
   const currentUser = (await requireActiveUser()).user;
@@ -30,6 +37,8 @@ export default async function AdminPage() {
 
   const platformActivity = await getPlatformActivity();
 
+  const lastSignups = (await recentSignups()) as SecureUser[];
+
   return (
     <>
       <AdminMainHeader
@@ -37,7 +46,11 @@ export default async function AdminPage() {
         title="Dashboard"
       />
 
-      <Admin platformActivity={platformActivity} stats={stats} />
+      <Admin
+        lastSignups={lastSignups}
+        platformActivity={platformActivity}
+        stats={stats}
+      />
     </>
   );
 }

@@ -9,14 +9,16 @@ import PlatformActiviyChart from "@/components/admin/platform-activity-chart";
 import RecentActivity from "@/components/admin/recent-activities";
 import RecentSignups from "@/components/admin/recent-signups";
 import { Button } from "@/components/ui/button";
-import type { DashboardStats } from "./page";
+import type { DashboardStats, SecureUser } from "./page";
 
 export default function Admin({
   stats,
   platformActivity,
+  lastSignups,
 }: {
   stats: DashboardStats;
   platformActivity: PlatformActivity[];
+  lastSignups: SecureUser[];
 }) {
   const [isPending, startTransition] = useTransition();
 
@@ -57,7 +59,7 @@ export default function Admin({
           <RecentActivity />
         </div>
 
-        <RecentSignups />
+        <RecentSignups lastSignups={lastSignups} />
       </div>
     </main>
   );

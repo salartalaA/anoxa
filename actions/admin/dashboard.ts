@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { requireActiveUser } from "../auth";
 
 export async function dashboardStats() {
   const [
@@ -167,4 +168,30 @@ export async function getPlatformActivity(): Promise<PlatformActivity[]> {
   }
 
   return activity;
+}
+
+export async function recentSignups() {
+  const result = await requireActiveUser();
+
+  if (!result.success) {
+    return result;
+  }
+
+  const currentUser = result.user;
+
+  if (currentUser.role === "USER") {
+    return null;
+  }
+
+  const lastFiveUsers = await prisma.user.findMany({
+    omit: {
+      password: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 5,
+  });
+
+  return lastFiveUsers;
 }
