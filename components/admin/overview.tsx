@@ -8,6 +8,7 @@ import {
   Users,
 } from "lucide-react";
 import type { JSX } from "react";
+import type { DashboardStats } from "@/app/(admin)/admin/page";
 
 interface OverviewItem {
   amount: number;
@@ -16,53 +17,53 @@ interface OverviewItem {
   title: string;
 }
 
-export default function Overview() {
+export default function Overview({ stats }: { stats: DashboardStats }) {
   const overviewItems: OverviewItem[] = [
     {
       id: "1",
-      amount: 7,
+      amount: stats.totalUsers,
       title: "Total Users",
       icon: <Users size={16} />,
     },
     {
       id: "2",
-      amount: 7,
+      amount: stats.activeUsers,
       title: "Active Users",
       icon: <Activity size={16} />,
     },
     {
       id: "3",
-      amount: 1,
+      amount: stats.totalPosts,
       title: "Total Posts",
       icon: <FileImage size={16} />,
     },
     {
       id: "4",
-      amount: 0,
+      amount: stats.pendingReports,
       title: "Pending Reports",
       icon: <Flag size={16} />,
     },
     {
       id: "5",
-      amount: 0,
+      amount: stats.verifiesUsers,
       title: "Verified Users",
       icon: <Shield size={16} />,
     },
     {
       id: "6",
-      amount: 0,
+      amount: stats.suspendedUsers,
       title: "Suspended Users",
       icon: <CircleDot size={16} />,
     },
     {
       id: "7",
-      amount: 0,
+      amount: stats.bannedUsers,
       title: "Banned Users",
       icon: <Users size={16} />,
     },
     {
       id: "8",
-      amount: 0,
+      amount: stats.totalComments,
       title: "Total Comments",
       icon: <MessageSquare size={16} />,
     },

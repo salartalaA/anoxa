@@ -8,8 +8,9 @@ import PlatformActiviyChart from "@/components/admin/platform-activity-chart";
 import RecentActivity from "@/components/admin/recent-activities";
 import RecentSignups from "@/components/admin/recent-signups";
 import { Button } from "@/components/ui/button";
+import type { DashboardStats } from "./page";
 
-export default function Admin() {
+export default function Admin({ stats }: { stats: DashboardStats }) {
   const [isPending, startTransition] = useTransition();
 
   const router = useRouter();
@@ -41,7 +42,7 @@ export default function Admin() {
           </Button>
         </div>
 
-        <Overview />
+        <Overview stats={stats} />
 
         <div className="flex gap-6">
           <PlatformActiviyChart />

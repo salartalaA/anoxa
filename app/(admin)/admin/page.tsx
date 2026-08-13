@@ -1,7 +1,19 @@
 import { redirect } from "next/navigation";
+import { dashboardStats } from "@/actions/admin/overview";
 import { requireActiveUser } from "@/actions/auth";
 import Admin from "@/app/(admin)/admin/_admin";
 import AdminMainHeader from "@/components/sidebar/admin/admin-main-header";
+
+export interface DashboardStats {
+  activeUsers: number;
+  bannedUsers: number;
+  pendingReports: number;
+  suspendedUsers: number;
+  totalComments: number;
+  totalPosts: number;
+  totalUsers: number;
+  verifiesUsers: number;
+}
 
 export default async function AdminPage() {
   const currentUser = (await requireActiveUser()).user;
@@ -14,6 +26,8 @@ export default async function AdminPage() {
     return redirect("/");
   }
 
+  const stats = await dashboardStats();
+
   return (
     <>
       <AdminMainHeader
@@ -21,7 +35,7 @@ export default async function AdminPage() {
         title="Dashboard"
       />
 
-      <Admin />
+      <Admin stats={stats} />
     </>
   );
 }
