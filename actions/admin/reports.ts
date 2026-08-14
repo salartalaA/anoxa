@@ -175,3 +175,69 @@ export async function updateReportStatus(
 
   return updatedUser;
 }
+
+export async function getAllReportedComments() {
+  const currentUser = (await requireActiveUser()).user;
+
+  if (!currentUser) {
+    return null;
+  }
+
+  const checkPerm = await hasPermission("VIEW_REPORT");
+
+  if (!checkPerm) {
+    return null;
+  }
+
+  const commentReports = await prisma.commentReport.findMany({
+    include: {
+      user: {
+        select: {
+          fullName: true,
+          avatarURL: true,
+        },
+      },
+      comment: {
+        select: {
+          content: true,
+        },
+      },
+    },
+  });
+
+  return commentReports;
+}
+
+export async function updateCommentReportStatus(
+  reportId: string,
+  newStatus: ReportStatus
+) {
+  const result = await requireActiveUser();
+
+  if (!result.success) {
+    return result;
+  }
+
+  const existingReport = await prisma.commentReport.findUnique({
+    where: {
+      id: reportId,
+    },
+  });
+
+  if (!existingReport) {
+    return null;
+  }
+
+  const updatedReport = await prisma.commentReport.update({
+    data: {
+      reportStatus: newStatus,
+    },
+    where: {
+      id: reportId,
+    },
+  });
+
+  revalidatePath("/admin/comments");
+
+  return updatedReport;
+}
