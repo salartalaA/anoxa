@@ -1,9 +1,11 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { requireActiveUser } from "@/actions//auth";
 import { Prisma } from "@/app/generated/prisma/client";
-import type { ReportReason } from "@/app/generated/prisma/enums";
+import type { ReportReason, ReportStatus } from "@/app/generated/prisma/enums";
 import prisma from "@/lib/prisma";
+import { hasPermission } from "./role";
 
 export async function reportPost(postId: string, reportReason: ReportReason) {
   try {
@@ -106,4 +108,70 @@ export async function reportcomment(
       message: "You have already reported this comment!",
     };
   }
+}
+
+export async function getAllReportedPosts() {
+  const currentUser = (await requireActiveUser()).user;
+
+  if (!currentUser) {
+    return null;
+  }
+
+  const checkPerm = await hasPermission("VIEW_REPORT");
+
+  if (!checkPerm) {
+    return null;
+  }
+
+  const postReports = await prisma.postReport.findMany({
+    include: {
+      user: {
+        select: {
+          fullName: true,
+          avatarURL: true,
+        },
+      },
+      post: {
+        select: {
+          caption: true,
+        },
+      },
+    },
+  });
+
+  return postReports;
+}
+
+export async function updateReportStatus(
+  reportId: string,
+  newStatus: ReportStatus
+) {
+  const result = await requireActiveUser();
+
+  if (!result.success) {
+    return result;
+  }
+
+  const existingReport = await prisma.postReport.findUnique({
+    where: {
+      id: reportId,
+    },
+  });
+
+  if (!existingReport) {
+    return null;
+  }
+
+  const updatedUser = await prisma.postReport.update({
+    data: {
+      reportStatus: newStatus,
+    },
+    where: {
+      id: reportId,
+    },
+  });
+
+  revalidatePath("/admin/posts");
+
+  return updatedUser;
 }

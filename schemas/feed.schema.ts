@@ -5,7 +5,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 export const postSchema = z.object({
   id: z.string().optional(),
-  caption: z.string().trim().max(500).optional(),
+  caption: z.string().trim().min(5, "Caption is too short!").max(500),
   image: z
     .file()
     .refine((file) => ACCEPTED_IMAGE_TYPES.includes(file.type), {
