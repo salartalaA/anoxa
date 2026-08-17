@@ -1,6 +1,6 @@
 "use client";
 
-import { Bookmark, MessageCircle, Rss } from "lucide-react";
+import { Bookmark, Rss } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -38,7 +38,7 @@ export default function NavItems() {
         Bookmarks
       </Link>
 
-      <Link
+      {/* <Link
         className={cn(
           "mt-1 flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
           pathname === "/messages"
@@ -50,7 +50,7 @@ export default function NavItems() {
       >
         <MessageCircle size={20} />
         Messages
-      </Link>
+      </Link> */}
     </>
   );
 }
