@@ -169,7 +169,7 @@ export default function ForgotPasswordPage() {
               </Button>
             </form>
 
-            <div className="relative -mt-8 w-full">
+            <div className="relative -mt-7 w-full">
               <div className="relative flex justify-center text-xs uppercase">
                 <Link className="w-full bg-background" href="/auth/login">
                   <Button className="w-full" variant={"ghost"}>
