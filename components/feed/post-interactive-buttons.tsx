@@ -194,13 +194,19 @@ export default function PostInteractiveButtons({
         ? `http://localhost:3000/#${postId}`
         : `https://anoxa.vercel.app/#${postId}`;
 
-    await navigator.clipboard.writeText(postURL);
+    if (navigator.share) {
+      await navigator.share({
+        url: postURL,
+      });
+    } else {
+      await navigator.clipboard.writeText(postURL);
 
-    toast.success("Copied to clipboard", {
-      position: "top-right",
-      className: "bg-card! text-primary!",
-      closeButton: true,
-    });
+      toast.success("Copied to clipboard", {
+        position: "top-right",
+        className: "bg-card! text-primary!",
+        closeButton: true,
+      });
+    }
   };
 
   return (
