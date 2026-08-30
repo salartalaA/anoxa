@@ -4,7 +4,8 @@ export const registerSchema = z.object({
   fullName: z
     .string()
     .trim()
-    .min(3, "Full name must be at least 3 characters."),
+    .min(3, "Full name must be at least 3 characters.")
+    .max(16, "Too long!"),
   username: z
     .string()
     .trim()
@@ -13,13 +14,19 @@ export const registerSchema = z.object({
     .regex(
       /^[a-z0-9_]+$/,
       "Username can only contain lowercase letters, numbers, and underscores."
-    ),
-  email: z.email("Please enter a valid email address.").trim().toLowerCase(),
+    )
+    .max(16, "Too long!"),
+  email: z
+    .email("Please enter a valid email address.")
+    .trim()
+    .toLowerCase()
+    .max(24, "Too long!"),
   // password: z.string().trim().min(8, "Password must be at least 8 characters."),
   password: z
     .string()
     .trim()
     .min(8, "Password must be at least 8 characters.")
+    .max(250, "Too long!")
     .regex(/[a-z]/, "Password must contain at least one lowercase letter.")
     .regex(/[A-Z]/, "Password must contain at least one uppercase letter.")
     .regex(/\d/, "Password must contain at least one number.")
@@ -38,8 +45,9 @@ export const editProfileSchema = z.object({
   fullName: z
     .string()
     .trim()
-    .min(3, "Full name must be at least 3 characters."),
-  bio: z.string().trim().max(240).optional(),
+    .min(3, "Full name must be at least 3 characters.")
+    .max(16, "Too long!"),
+  bio: z.string().trim().max(240, "Too long!").optional(),
   avatarURL: z
     .url("Please enter a valid avatar url!")
     .trim()
