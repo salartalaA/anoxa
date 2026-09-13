@@ -1,7 +1,12 @@
 import { Home, Shield } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import AdminNavItems from "@/components/sidebar/admin/admin-nav-items";
 import { LogoutButton } from "@/components/sidebar/logout-button";
+
+export const metadata: Metadata = {
+  title: "Control center",
+};
 
 export default async function AdminLayout({
   children,
