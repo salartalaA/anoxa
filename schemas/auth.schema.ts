@@ -20,8 +20,7 @@ export const registerSchema = z.object({
     .email("Please enter a valid email address.")
     .trim()
     .toLowerCase()
-    .max(24, "Too long!"),
-  // password: z.string().trim().min(8, "Password must be at least 8 characters."),
+    .max(36, "Too long!"),
   password: z
     .string()
     .trim()
