@@ -10,12 +10,12 @@ export default function RecentSignups({
   return (
     <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
       <div className="flex flex-col space-y-1.5 p-6">
-        <h3 className="flex items-center gap-2 font-semibold text-2xl tracking-tight">
+        <h3 className="flex items-center gap-2 font-bold tracking-tight sm:text-2xl md:text-3xl">
           <Users className="h-5 w-5 text-primary" />
           Recent Signups
         </h3>
 
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-xs md:text-sm">
           New users who joined recently
         </p>
       </div>
@@ -31,7 +31,7 @@ export default function RecentSignups({
 
             return (
               <a
-                className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                className="flex w-full items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 sm:w-fit"
                 href={`/profile/${user.username}`}
                 key={user.id}
                 rel="noreferrer"

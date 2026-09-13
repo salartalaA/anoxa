@@ -18,7 +18,7 @@ export default function AdminNavItems() {
     <>
       <Link
         className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
+          "flex items-center justify-center gap-2.5 rounded-lg px-2.5 py-2 font-medium text-sm transition-colors md:justify-start md:gap-3 md:px-3",
           pathname === "/admin"
             ? "bg-sidebar-primary text-sidebar-primary-foreground"
             : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -26,13 +26,13 @@ export default function AdminNavItems() {
         href="/admin"
         prefetch
       >
-        <LayoutDashboard size={20} />
-        Dashboard
+        <LayoutDashboard className="size-[18px] md:size-5" />
+        <span className="hidden lg:inline">Dashboard</span>
       </Link>
 
       <Link
         className={cn(
-          "mt-1 flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
+          "flex items-center justify-center gap-2.5 rounded-lg px-2.5 py-2 font-medium text-sm transition-colors md:mt-1 md:justify-start md:gap-3 md:px-3",
           pathname === "/admin/users"
             ? "bg-sidebar-primary text-sidebar-primary-foreground"
             : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -40,13 +40,13 @@ export default function AdminNavItems() {
         href="/admin/users"
         prefetch
       >
-        <Users size={20} />
-        Users
+        <Users className="size-[18px] md:size-5" />
+        <span className="hidden lg:inline">Users</span>
       </Link>
 
       <Link
         className={cn(
-          "mt-1 flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
+          "flex items-center justify-center gap-2.5 rounded-lg px-2.5 py-2 font-medium text-sm transition-colors md:mt-1 md:justify-start md:gap-3 md:px-3",
           pathname === "/admin/posts"
             ? "bg-sidebar-primary text-sidebar-primary-foreground"
             : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -54,13 +54,13 @@ export default function AdminNavItems() {
         href="/admin/posts"
         prefetch
       >
-        <FileText size={20} />
-        Posts
+        <FileText className="size-[18px] md:size-5" />
+        <span className="hidden lg:inline">Posts</span>
       </Link>
 
       <Link
         className={cn(
-          "mt-1 flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
+          "flex items-center justify-center gap-2.5 rounded-lg px-2.5 py-2 font-medium text-sm transition-colors md:mt-1 md:justify-start md:gap-3 md:px-3",
           pathname === "/admin/comments"
             ? "bg-sidebar-primary text-sidebar-primary-foreground"
             : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -68,13 +68,13 @@ export default function AdminNavItems() {
         href="/admin/comments"
         prefetch
       >
-        <MessageSquare size={20} />
-        Comments
+        <MessageSquare className="size-[18px] md:size-5" />
+        <span className="hidden lg:inline">Comments</span>
       </Link>
 
       <Link
         className={cn(
-          "mt-1 flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
+          "flex items-center justify-center gap-2.5 rounded-lg px-2.5 py-2 font-medium text-sm transition-colors md:mt-1 md:justify-start md:gap-3 md:px-3",
           pathname === "/admin/audit-logs"
             ? "bg-sidebar-primary text-sidebar-primary-foreground"
             : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -82,8 +82,8 @@ export default function AdminNavItems() {
         href="/admin/audit-logs"
         prefetch
       >
-        <ScrollText size={20} />
-        Audit Logs
+        <ScrollText className="size-[18px] md:size-5" />
+        <span className="hidden lg:inline">Audit Logs</span>
       </Link>
     </>
   );

@@ -136,7 +136,7 @@ const activities: ActivityItem[] = [
 
 export default function RecentActivity() {
   return (
-    <div className="w-1/2 rounded-lg border bg-card text-card-foreground shadow-sm">
+    <div className="hidden w-full rounded-lg border bg-card text-card-foreground shadow-sm lg:block xl:w-1/2">
       <div className="m-6 flex items-center justify-between">
         <div className="flex flex-col space-y-1.5">
           <h3 className="flex items-center gap-2 font-semibold text-2xl leading-none tracking-tight">

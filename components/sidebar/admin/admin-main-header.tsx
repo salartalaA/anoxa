@@ -1,3 +1,7 @@
+import { House } from "lucide-react";
+import Link from "next/link";
+import AdminNavItems from "./admin-nav-items";
+
 export default function AdminMainHeader({
   title,
   description,
@@ -14,6 +18,13 @@ export default function AdminMainHeader({
         <p className="hidden truncate text-muted-foreground text-xs sm:block">
           {description}
         </p>
+      </div>
+
+      <div className="flex items-center lg:hidden">
+        <AdminNavItems />
+        <Link className="px-2.5 lg:hidden" href="/" prefetch>
+          <House size={20} />
+        </Link>
       </div>
     </header>
   );

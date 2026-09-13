@@ -35,13 +35,15 @@ export default function Admin({
       <div className="animate-fade-up space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-bold text-3xl tracking-tight">Welcome back!</h1>
-            <p className="text-muted-foreground">
+            <h1 className="font-bold text-xl tracking-tight sm:text-2xl md:text-3xl">
+              Welcome back!
+            </h1>
+            <p className="mt-1 text-muted-foreground text-xs sm:text-sm md:text-base">
               Here's an overview of your platform.
             </p>
           </div>
           <Button
-            className="h-10 transition-opacity disabled:opacity-60"
+            className="h-10 text-sm transition-opacity disabled:opacity-60 md:text-base"
             disabled={isPending}
             onClick={handleRefresh}
             variant="outline"
@@ -53,7 +55,7 @@ export default function Admin({
 
         <Overview stats={stats} />
 
-        <div className="flex gap-6">
+        <div className="flex flex-col gap-6 xl:flex-row">
           <PlatformActiviyChart platformActivity={platformActivity} />
 
           <RecentActivity />

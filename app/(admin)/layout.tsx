@@ -15,7 +15,7 @@ export default async function AdminLayout({
 }>) {
   return (
     <>
-      <aside className="fixed top-0 left-0 z-40 h-screen w-64 border-r bg-sidebar-background transition-all duration-300">
+      <aside className="fixed top-0 left-0 z-40 hidden h-screen w-64 border-r bg-sidebar-background transition-all duration-300 lg:block">
         <div className="flex h-full flex-col">
           <div className="flex h-16 items-center justify-between border-b px-4">
             <Link className="flex items-center" href="/admin">
@@ -50,7 +50,7 @@ export default async function AdminLayout({
         </div>
       </aside>
 
-      <div className="pl-64">{children}</div>
+      <div className="lg:pl-64">{children}</div>
     </>
   );
 }

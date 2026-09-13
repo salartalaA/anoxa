@@ -150,19 +150,19 @@ export default function OverviewChart({
   platformActivity: PlatformActivity[];
 }) {
   return (
-    <div className="w-2/3 rounded-lg border bg-card text-card-foreground shadow-sm">
+    <div className="w-full rounded-lg border bg-card text-card-foreground shadow-sm xl:w-2/3">
       <div className="flex flex-col space-y-1.5 p-6">
-        <h3 className="flex items-center gap-2 font-semibold text-2xl leading-none tracking-tight">
+        <h3 className="flex items-center gap-2 font-bold leading-none tracking-tight sm:text-2xl md:text-3xl">
           <TrendingUp className="text-primary" size={20} />
           Platform Activity
         </h3>
 
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-xs md:text-sm">
           Daily activity over the last 7 days
         </p>
       </div>
 
-      <div className="mx-5 mb-4">
+      <div className="mb-4 max-xl:-ml-5 xl:mx-5">
         <div className="h-[320px] w-full">
           <ResponsiveContainer height="100%" width="100%">
             <AreaChart
