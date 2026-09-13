@@ -12,7 +12,7 @@ export default function NavItems() {
     <>
       <Link
         className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
+          "flex items-center justify-center gap-2.5 rounded-lg px-2.5 py-2 font-medium text-sm transition-colors md:justify-start md:gap-3 md:px-3",
           pathname === "/"
             ? "bg-sidebar-primary text-sidebar-primary-foreground"
             : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -20,13 +20,13 @@ export default function NavItems() {
         href="/"
         prefetch
       >
-        <Rss size={20} />
-        Feed
+        <Rss className="size-[18px] md:size-5" />
+        <span className="hidden md:inline">Feed</span>
       </Link>
 
       <Link
         className={cn(
-          "mt-1 flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
+          "flex items-center justify-center gap-2.5 rounded-lg px-2.5 py-2 font-medium text-sm transition-colors md:mt-1 md:justify-start md:gap-3 md:px-3",
           pathname === "/bookmarks"
             ? "bg-sidebar-primary text-sidebar-primary-foreground"
             : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -34,13 +34,13 @@ export default function NavItems() {
         href="/bookmarks"
         prefetch
       >
-        <Bookmark size={20} />
-        Bookmarks
+        <Bookmark className="size-[18px] md:size-5" />
+        <span className="hidden md:inline">Bookmarks</span>
       </Link>
-
-      {/* <Link
+      {/* 
+      <Link
         className={cn(
-          "mt-1 flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
+          "flex items-center justify-center gap-2.5 rounded-lg px-2.5 py-2 font-medium text-sm transition-colors md:mt-1 md:justify-start md:gap-3 md:px-3",
           pathname === "/messages"
             ? "bg-sidebar-primary text-sidebar-primary-foreground"
             : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -48,8 +48,8 @@ export default function NavItems() {
         href="/messages"
         prefetch
       >
-        <MessageCircle size={20} />
-        Messages
+        <MessageCircle className="size-[18px] md:size-5" />
+        <span className="hidden md:inline">Messages</span>
       </Link> */}
     </>
   );

@@ -17,15 +17,33 @@ export default function FeedHeader() {
   };
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex flex-col justify-between lg:flex-row lg:items-center">
       <div>
-        <h1 className="font-bold text-2xl">Feed</h1>
+        <div className="mb-2 flex items-center justify-between">
+          <h1 className="font-bold text-2xl">Feed</h1>
+          <div className="flex gap-2 lg:hidden">
+            <Button
+              className="h-10 transition-opacity disabled:opacity-60"
+              disabled={isPending}
+              onClick={handleRefresh}
+              variant="outline"
+            >
+              <RefreshCw
+                className={isPending ? "animate-spin" : ""}
+                size={20}
+              />
+              {isPending ? "Refreshing..." : "Refresh"}
+            </Button>
+
+            <CreatePostDialog />
+          </div>
+        </div>
         <p className="text-muted-foreground text-sm">
           See what people are sharing
         </p>
       </div>
 
-      <div className="flex gap-2">
+      <div className="hidden gap-2 lg:flex">
         <Button
           className="h-10 transition-opacity disabled:opacity-60"
           disabled={isPending}

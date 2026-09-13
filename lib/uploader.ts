@@ -1,7 +1,13 @@
 import type { UploadApiResponse } from "cloudinary";
 import cloudinary from "./cloudinary";
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
 export async function uploadImage(file: File) {
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error("File size must be less than 5MB.");
+  }
+
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const result = await new Promise<UploadApiResponse>((resolve, reject) => {

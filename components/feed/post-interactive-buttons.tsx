@@ -210,9 +210,9 @@ export default function PostInteractiveButtons({
   };
 
   return (
-    <div className="flex flex-col items-center p-6 pt-0">
+    <div className="flex flex-col items-center p-3 pt-0! sm:p-6">
       <div className="flex w-full items-center justify-between pt-3">
-        <div className="flex gap-3">
+        <div className="flex lg:gap-3">
           {reactions.map((reaction) => {
             const Icon = reaction.icon;
 
@@ -246,9 +246,9 @@ export default function PostInteractiveButtons({
           })}
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center lg:gap-1">
           <Button
-            className="gap-1.5 px-3"
+            className="gap-1.5 lg:px-3"
             onClick={() => setShowComment(!showComment)}
             size="sm"
             variant="ghost"
@@ -258,7 +258,7 @@ export default function PostInteractiveButtons({
           </Button>
 
           <Button
-            className="px-3"
+            className="lg:px-3"
             onClick={() => handleBookmark(postId)}
             size="sm"
             variant="ghost"
@@ -269,7 +269,7 @@ export default function PostInteractiveButtons({
           </Button>
 
           <Button
-            className="px-3"
+            className="lg:px-3"
             onClick={() => handleShare(postId)}
             size="sm"
             variant="ghost"
@@ -415,7 +415,7 @@ export default function PostInteractiveButtons({
             </p>
           )}
 
-          <div className="flex items-center gap-2 pt-2">
+          <div className="flex items-start gap-2 pt-2">
             <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full">
               <span className="flex h-full w-full items-center justify-center rounded-full bg-muted text-xs">
                 {currentUserAvatar ? (
@@ -426,51 +426,57 @@ export default function PostInteractiveButtons({
               </span>
             </span>
 
-            <div className="flex flex-1 gap-2">
-              <Textarea
-                className="min-h-9 max-w-[486px]"
-                placeholder="Write a comment..."
-                rows={1}
-                {...register("content")}
-                defaultValue={isCommentEditing?.comment ?? ""}
-              />
+            <div className="flex min-w-0 flex-1 gap-2">
+              <div className="relative min-w-0 flex-1">
+                <Textarea
+                  className="min-h-9 min-w-0 pb-10 max-md:text-sm lg:pb-2"
+                  placeholder="Write a comment..."
+                  rows={1}
+                  {...register("content")}
+                  defaultValue={isCommentEditing?.comment ?? ""}
+                />
+
+                <div className="absolute right-1.5 bottom-1.5 flex gap-1.5 lg:hidden">
+                  {isCommentEditing && (
+                    <Button
+                      onClick={() => {
+                        setIsCommentEditing(null);
+                        reset();
+                      }}
+                      size="sm"
+                      type="button"
+                      variant="destructive"
+                    >
+                      Cancel
+                    </Button>
+                  )}
+
+                  <Button disabled={isSubmitting} size="sm" type="submit">
+                    {isSubmitting && <Loader2 className="animate-spin" />}
+                    {isCommentEditing ? "Edit" : "Comment"}
+                  </Button>
+                </div>
+              </div>
 
               {isCommentEditing && (
                 <Button
+                  className="hidden shrink-0 lg:block"
                   onClick={() => {
                     setIsCommentEditing(null);
                     reset();
                   }}
+                  type="button"
                   variant="destructive"
                 >
                   Cancel
                 </Button>
               )}
 
-              <div>
-                {isCommentEditing ? (
-                  <Button disabled={isSubmitting} type="submit">
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="animate-spin" />
-                        Editing...
-                      </>
-                    ) : (
-                      "Edit"
-                    )}
-                  </Button>
-                ) : (
-                  <Button disabled={isSubmitting} type="submit">
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="animate-spin" />
-                        Commenting...
-                      </>
-                    ) : (
-                      "Comment"
-                    )}
-                  </Button>
-                )}
+              <div className="hidden shrink-0 lg:block">
+                <Button disabled={isSubmitting} type="submit">
+                  {isSubmitting && <Loader2 className="animate-spin" />}
+                  {isCommentEditing ? "Edit" : "Comment"}
+                </Button>
               </div>
             </div>
           </div>

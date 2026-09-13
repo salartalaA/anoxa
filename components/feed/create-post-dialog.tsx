@@ -97,6 +97,7 @@ export function CreatePostDialog() {
             <DialogDescription>
               Share a photo with other users
             </DialogDescription>
+            <span className="text-destructive">Max file size: 5MB</span>
           </DialogHeader>
 
           <div className="mt-4 space-y-4">
