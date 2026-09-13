@@ -21,8 +21,8 @@ export default async function BookmarkPage() {
     <>
       <Header />
 
-      <div className="mx-auto max-w-2xl p-6 pt-20">
-        <div className="mb-8">
+      <div className="mx-auto max-w-2xl p-6">
+        <div className="mb-[27px]">
           <div className="mb-2 flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/6 bg-white/5">
               <Bookmark className="text-primary" size={16} />
