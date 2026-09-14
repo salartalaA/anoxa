@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { socket } from "@/lib/socket";
 
 export default function ProfileDropDown({
   fullName,
@@ -32,6 +33,8 @@ export default function ProfileDropDown({
   const router = useRouter();
 
   const handleSignout = async () => {
+    socket.disconnect();
+
     await logout();
 
     toast.success("Signed out successfully.", {

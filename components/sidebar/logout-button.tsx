@@ -5,11 +5,14 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { logout } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
+import { socket } from "@/lib/socket";
 
 export function LogoutButton() {
   const router = useRouter();
 
   async function handleLogout() {
+    socket.disconnect();
+
     await logout();
 
     toast.success("Signed out successfully.", {
