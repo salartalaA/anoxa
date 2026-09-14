@@ -25,6 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Anoxa",
     description: "Anoxa social media platform",
+    images: ["/anoxa-og.png"],
     type: "website",
   },
 };
