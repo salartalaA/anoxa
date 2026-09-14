@@ -22,6 +22,11 @@ export const metadata: Metadata = {
     template: "Anoxa | %s",
   },
   description: "Anoxa social media platform",
+  openGraph: {
+    title: "Anoxa",
+    description: "Anoxa social media platform",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
