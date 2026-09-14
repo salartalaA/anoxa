@@ -262,8 +262,8 @@ export default function MessagesPage({
   });
 
   return (
-    <div className="mx-auto min-h-screen max-w-[1400px] py-6 lg:py-8">
-      <div className="my-5 hidden gap-5 md:grid md:grid-cols-[35fr_65fr] lg:grid-cols-[30fr_70fr]">
+    <div className="mx-auto min-h-screen max-w-[1400px] px-4 py-6 lg:py-8">
+      <div className="my-5 grid gap-5 md:grid-cols-[35fr_65fr] lg:grid-cols-[30fr_70fr]">
         <div className="glass-card h-[calc(100vh-7rem)] rounded-xl border border-border/60 shadow-lg">
           <div className="h-full p-4">
             <div className="flex h-full flex-col">
