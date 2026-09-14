@@ -131,16 +131,46 @@ io.on("connection", async (socket) => {
 
     activeConversationMap.set(socket.id, conversation.id);
 
-    await prisma.message.updateMany({
+    const lastUnreadMessage = await prisma.message.findFirst({
       where: {
         conversationId: conversation.id,
         receiverId: currentUser.id,
         seenAt: null,
       },
-      data: {
-        seenAt: new Date(),
+      orderBy: {
+        createdAt: "desc",
       },
     });
+
+    if (lastUnreadMessage) {
+      const seenAt = new Date();
+
+      await prisma.message.updateMany({
+        where: {
+          conversationId: conversation.id,
+          receiverId: currentUser.id,
+          seenAt: null,
+          createdAt: {
+            lte: lastUnreadMessage.createdAt,
+          },
+        },
+        data: {
+          seenAt,
+        },
+      });
+
+      io.to(conversation.id).emit("message-seen", {
+        conversationId: conversation.id,
+        messageId: lastUnreadMessage.id,
+        seenAt,
+      });
+
+      io.to(`user:${lastUnreadMessage.senderId}`).emit("message-seen", {
+        conversationId: conversation.id,
+        messageId: lastUnreadMessage.id,
+        seenAt,
+      });
+    }
 
     const oldMessages = await prisma.message.findMany({
       where: {
@@ -151,14 +181,6 @@ io.on("connection", async (socket) => {
         createdAt: "asc",
       },
     });
-
-    // console.log(
-    //   `${openConversationData.currentUserId} wants chat with ${openConversationData.otherUserId}`
-    // );
-
-    // console.log(`Conversation ${conversation.id} opened!`);
-
-    // console.log("Conversation Id: ", conversation.id);
 
     socket.emit("old-messages", {
       conversationId: conversation.id,
@@ -208,12 +230,6 @@ io.on("connection", async (socket) => {
       return;
     }
 
-    // io.to(message.conversationId).emit("message-seen", {
-    //   conversationId: message.conversationId,
-    //   messageId: message.id,
-    //   seenAt,
-    // });
-
     io.to(message.conversationId).emit("message-seen", {
       conversationId: message.conversationId,
       messageId: message.id,
@@ -225,6 +241,17 @@ io.on("connection", async (socket) => {
       messageId: message.id,
       seenAt,
     });
+  });
+
+  socket.on("close-chat", () => {
+    const conversationId = activeConversationMap.get(socket.id);
+
+    if (!conversationId) {
+      return;
+    }
+
+    socket.leave(conversationId);
+    activeConversationMap.delete(socket.id);
   });
 
   socket.on("send-new-message", async (newMessage: NewMessage) => {

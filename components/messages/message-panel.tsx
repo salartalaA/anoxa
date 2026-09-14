@@ -77,42 +77,21 @@ export default function MessagePanel({
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // useEffect(() => {
-  //   if (!oldMessages) {
-  //     return;
-  //   }
-
-  //   setAllMessages(oldMessages.oldMessages);
-  //   setIsLoadingMessages(false);
-  // }, [oldMessages]);
-
   useEffect(() => {
     if (!oldMessages) {
       return;
     }
 
-    setAllMessages((currentMessages) => {
-      const messagesMap = new Map<string, Message>();
-
-      for (const message of currentMessages) {
-        messagesMap.set(message.id, message);
-      }
-
-      for (const message of oldMessages.oldMessages) {
-        messagesMap.set(message.id, message);
-      }
-
-      return Array.from(messagesMap.values()).sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      );
-    });
-
+    setAllMessages(oldMessages.oldMessages);
     setIsLoadingMessages(false);
   }, [oldMessages]);
 
   useEffect(() => {
-    socket.on("receive-new-message", (newMessage: Message) => {
+    const handleReceiveNewMessage = (newMessage: Message) => {
+      if (newMessage.conversationId !== conversationId) {
+        return;
+      }
+
       setAllMessages((prev) => {
         if (prev.some((message) => message.id === newMessage.id)) {
           return prev;
@@ -125,11 +104,13 @@ export default function MessagePanel({
       });
 
       setIsLoadingMessages(false);
-    });
+    };
 
-    socket.on("message-deleted", ({ messageId }: { messageId: string }) => {
-      setAllMessages((prev) => prev.filter((msg) => msg.id !== messageId));
-    });
+    const handleMessageDeleted = ({ messageId }: { messageId: string }) => {
+      setAllMessages((prev) =>
+        prev.filter((message) => message.id !== messageId)
+      );
+    };
 
     const handleMessageEdited = ({
       messageId,
@@ -153,14 +134,16 @@ export default function MessagePanel({
       );
     };
 
+    socket.on("receive-new-message", handleReceiveNewMessage);
+    socket.on("message-deleted", handleMessageDeleted);
     socket.on("message-edited", handleMessageEdited);
 
     return () => {
-      socket.off("receive-new-message");
-      socket.off("message-deleted");
+      socket.off("receive-new-message", handleReceiveNewMessage);
+      socket.off("message-deleted", handleMessageDeleted);
       socket.off("message-edited", handleMessageEdited);
     };
-  }, []);
+  }, [conversationId]);
 
   useEffect(() => {
     const handleMessagesSeen = ({
@@ -259,26 +242,6 @@ export default function MessagePanel({
     });
   }, [allMessages]);
 
-  // const handleSendNewMessage = (e: SyntheticEvent<Element, Event>) => {
-  //   e.preventDefault();
-
-  //   if (!message || message.trim() === "") {
-  //     return null;
-  //   }
-
-  //   const newMessage: NewMessage = {
-  //     text: message,
-  //     // receiverId: otherUserId,
-  //     // senderId: currentUserId,
-  //     conversationId,
-  //     createdAt: new Date(),
-  //   };
-
-  //   socket.emit("send-new-message", newMessage);
-
-  //   setMessage("");
-  // };
-
   const handleSendNewMessage = (e: SyntheticEvent<Element, Event>) => {
     e.preventDefault();
 
@@ -316,14 +279,6 @@ export default function MessagePanel({
 
   const currentLastSeen =
     lastSeen[activeConversation.id] ?? activeConversation.lastSeen;
-
-  // const lastSeenTime = currentLastSeen
-  //   ? new Date(currentLastSeen).toLocaleTimeString("en-US", {
-  //       hour: "2-digit",
-  //       minute: "2-digit",
-  //       hour12: false,
-  //     })
-  //   : "";
 
   const handleTyping = () => {
     socket.emit("start-typing", {
@@ -380,10 +335,6 @@ export default function MessagePanel({
 
             <div className="flex items-center gap-1.5">
               <p className="text-muted-foreground text-xs">
-                {/* {isOnline
-                    ? "Online"
-                    : `Last seen at ${formatLastSeen(currentLastSeen)}`} */}
-
                 {isOnline && "Online"}
 
                 {!isOnline && currentLastSeen && (
@@ -413,6 +364,7 @@ export default function MessagePanel({
         <Button
           className="text-muted-foreground hover:text-foreground"
           onClick={() => {
+            socket.emit("close-chat");
             setAllMessages([]);
             setActiveConversation(null);
             setPanelOpenState(false);
@@ -447,19 +399,6 @@ export default function MessagePanel({
         ) : (
           <>
             <div className="space-y-1 px-5 py-6">
-              {/* {allMessages.map((message: Message) => (
-                <MessageItem
-                  currentUserId={currentUserId}
-                  editingMessageId={editingMessageId}
-                  isEditing={isEditing}
-                  key={message.id}
-                  message={message}
-                  otherUserAvatarURL={activeConversation.avatarURL}
-                  otherUserFullName={activeConversation.fullName}
-                  setEditingMessageId={setEditingMessageId}
-                  setIsEditing={setIsEditing}
-                  setMessage={setMessage}
-                /> */}
               {allMessages.map((message: Message, index: number) => {
                 const currentDateKey = getMessageDateKey(message.createdAt);
 

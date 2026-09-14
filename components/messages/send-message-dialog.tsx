@@ -33,7 +33,7 @@ export default function SendMessageDialog({
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  const handleOpenPanel = (conversation: CustomUser) => {
+  const handleOpenPanel = async (conversation: CustomUser) => {
     socket.emit("open-chat", {
       currentUserId,
       otherUserId: conversation.id,
@@ -54,20 +54,13 @@ export default function SendMessageDialog({
       currentUserId,
     });
 
-    setPanelOpenState(true);
     setOpenState(false);
+    setPanelOpenState(true);
+
+    await new Promise((resolver) => setTimeout(resolver, 200));
+
+    setSearchQuery("");
   };
-
-  // const handleOpenPanel = (user: CustomUser) => {
-  //   socket.emit("open-chat", {
-  //     currentUserId,
-  //     otherUserId: user.id,
-  //   });
-
-  //   setMessage("");
-
-  //   setOpenState(false);
-  // };
 
   const filteredconversations = activeUsers.filter((chat) => {
     const query = searchQuery.trim().toLowerCase();
@@ -80,7 +73,17 @@ export default function SendMessageDialog({
   });
 
   return (
-    <Dialog onOpenChange={setOpenState} open={openState}>
+    <Dialog
+      onOpenChange={async (open) => {
+        setOpenState(open);
+
+        if (!open) {
+          await new Promise((resolver) => setTimeout(resolver, 200));
+          setSearchQuery("");
+        }
+      }}
+      open={openState}
+    >
       <DialogTrigger
         render={
           <Button className={"rounded-lg text-foreground"}>

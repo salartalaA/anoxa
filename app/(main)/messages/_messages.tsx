@@ -135,6 +135,12 @@ export default function MessagesPage({
             return [newConversation, ...prev];
           }
 
+          if (!lastMessage) {
+            return prev.filter(
+              (chat) => chat.conversationId !== conversationId
+            );
+          }
+
           return prev.map((chat) => {
             if (chat.conversationId !== conversationId) {
               return chat;
@@ -143,7 +149,7 @@ export default function MessagesPage({
             return {
               ...chat,
               lastMessage,
-              lastMessageAt: lastMessage?.createdAt ?? chat.lastMessageAt,
+              lastMessageAt: lastMessage.createdAt,
               // unreadCount:
               //   activeConversation?.conversationId === conversationId
               //     ? 0
@@ -156,20 +162,20 @@ export default function MessagesPage({
       }
     );
 
-    socket.on("message-deleted", ({ messageId }) => {
-      setOldMessages((prev: OldMessages | undefined) => {
-        if (!prev) {
-          return prev;
-        }
+    // socket.on("message-deleted", ({ messageId }) => {
+    //   setOldMessages((prev: OldMessages | undefined) => {
+    //     if (!prev) {
+    //       return prev;
+    //     }
 
-        return {
-          ...prev,
-          oldMessages: prev.oldMessages.filter(
-            (message) => message.id !== messageId
-          ),
-        };
-      });
-    });
+    //     return {
+    //       ...prev,
+    //       oldMessages: prev.oldMessages.filter(
+    //         (message) => message.id !== messageId
+    //       ),
+    //     };
+    //   });
+    // });
 
     socket.on(
       "message-seen",
