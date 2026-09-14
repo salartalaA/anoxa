@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BadgeCheck,
   Ban,
   Ellipsis,
   Eye,
@@ -17,6 +18,7 @@ import {
   unbanUser,
   unsuspendUser,
 } from "@/actions/admin/manage";
+import { changeUserRole } from "@/actions/admin/users";
 import type { AllUsers } from "@/app/(admin)/admin/users/page";
 import type { Role, Status } from "@/app/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
@@ -165,6 +167,10 @@ export default function UsersTable({
     await unbanUser(userId);
   };
 
+  const handleChangeVerify = async (userId: string) => {
+    await changeUserRole(userId);
+  };
+
   return (
     <>
       <div className="overflow-hidden rounded-lg bg-card text-card-foreground shadow-sm">
@@ -220,6 +226,10 @@ export default function UsersTable({
                       <span className="font-medium text-foreground">
                         {user.fullName}
                       </span>
+
+                      {user.isVerified && (
+                        <BadgeCheck className="-ml-2 text-primary" size={16} />
+                      )}
                     </div>
                   </TableCell>
 
@@ -352,6 +362,15 @@ export default function UsersTable({
                             >
                               <ShieldCheck className="mr-2 h-4 w-4" />
                               Change Role
+                            </DropdownMenuItem>
+                          )}
+
+                          {currentUserRole === "OWNER" && (
+                            <DropdownMenuItem
+                              onClick={() => handleChangeVerify(user.id)}
+                            >
+                              <BadgeCheck className="mr-2 h-4 w-4 text-primary" />
+                              Change Verify
                             </DropdownMenuItem>
                           )}
 
