@@ -14,7 +14,7 @@ export const connectSocket = async () => {
   const sessionId = await fetch(
     process.env.NODE_ENV === "development"
       ? "http://localhost:3000/api/session"
-      : "https://anoxa-server.onrender.com/api/session"
+      : "https://anoxa.vercel.app/api/session"
   )
     .then((res) => res.json())
     .then((data) => data.sessionId);
