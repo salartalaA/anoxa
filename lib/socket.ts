@@ -11,23 +11,14 @@ export const socket = io(
 );
 
 export const connectSocket = async () => {
-  if (typeof window === "undefined") {
-    return;
-  }
+  const sessionId = await fetch(
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000/api/session"
+      : "https://anoxa-server.onrender.com/api/session"
+  )
+    .then((res) => res.json())
+    .then((data) => data.sessionId);
 
-  try {
-    const res = await fetch("/api/session");
-    if (!res.ok) {
-      return;
-    }
-
-    const data = await res.json();
-
-    if (data?.sessionId) {
-      socket.auth = { sessionId: data.sessionId };
-      socket.connect();
-    }
-  } catch (error) {
-    console.error("Socket connection error:", error);
-  }
+  socket.auth = { sessionId };
+  socket.connect();
 };
