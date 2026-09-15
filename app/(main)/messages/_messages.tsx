@@ -11,7 +11,7 @@ import SendMessageDialog, {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { connectSocket, socket } from "@/lib/socket";
+import { socket } from "@/lib/socket";
 import { cn } from "@/lib/utils";
 
 export interface OldMessages {
@@ -65,14 +65,6 @@ export default function MessagesPage({
   const [searchQuery, setSearchQuery] = useState("");
 
   // console.log("ALL ONLINE USERS: ", onlineUsers);
-
-  useEffect(() => {
-    connectSocket();
-
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally omitted dependencies
   useEffect(() => {
