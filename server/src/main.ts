@@ -17,19 +17,23 @@ app.use(
 
 // JUST FOR TEST
 
-app.use("/users", async (_, res) => {
-  // console.log(res.cookie);
+// app.use("/users", async (_, res) => {
+//   // console.log(res.cookie);
 
-  const allActiveUsers = await prisma.user.findMany({
-    where: {
-      status: "ACTIVE",
-    },
-    omit: {
-      password: true,
-    },
-  });
+//   const allActiveUsers = await prisma.user.findMany({
+//     where: {
+//       status: "ACTIVE",
+//     },
+//     omit: {
+//       password: true,
+//     },
+//   });
 
-  res.status(200).json(allActiveUsers);
+//   res.status(200).json(allActiveUsers);
+// });
+
+app.use("/", (_, res) => {
+  res.status(200).json({ message: "Hello friend!!" });
 });
 
 const server = http.createServer(app);
