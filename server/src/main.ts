@@ -11,7 +11,7 @@ const app = express();
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:3000",
+    origin: "https://anoxa.vercel.app",
   })
 );
 
@@ -37,7 +37,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     credentials: true,
-    origin: "http://localhost:3000",
+    origin: "https://anoxa.vercel.app",
   },
 });
 
@@ -67,15 +67,18 @@ io.on("connection", async (socket) => {
 
   const cookies = socket.handshake.headers.cookie;
 
-  const sessionId = cookies
-    ?.split("; ")
-    .find((item) => item.startsWith("session="))
-    ?.split("=")[1];
+  const sessionId =
+    (socket.handshake.auth?.sessionId as string) ||
+    cookies
+      ?.split("; ")
+      .find((item) => item.startsWith("session="))
+      ?.split("=")[1];
 
   if (!sessionId) {
+    console.log("Session ID nareseed, disconnecting...");
+    socket.disconnect();
     return;
   }
-
   const currentUser = await getcurrentUserBySession(sessionId);
 
   if (!currentUser) {
