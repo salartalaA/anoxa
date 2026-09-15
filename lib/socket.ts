@@ -10,7 +10,15 @@ export const socket = io(
   }
 );
 
-export const connectSocket = (sessionId: string) => {
+export const connectSocket = async () => {
+  const sessionId = await fetch(
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000/api/session"
+      : "https://anoxa-server.onrender.com/api/session"
+  )
+    .then((res) => res.json())
+    .then((data) => data.session);
+
   socket.auth = { sessionId };
   socket.connect();
 };

@@ -11,7 +11,7 @@ const app = express();
 app.use(
   cors({
     credentials: true,
-    origin: "https://anoxa.vercel.app",
+    origin: "http://localhost:3000",
   })
 );
 
@@ -37,7 +37,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     credentials: true,
-    origin: "https://anoxa.vercel.app",
+    origin: "http://localhost:3000",
   },
 });
 
