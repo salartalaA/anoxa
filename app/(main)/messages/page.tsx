@@ -1,9 +1,11 @@
 import { ActivityIcon, Shield } from "lucide-react";
+import { cookies } from "next/headers";
 import Link from "next/link";
 import { allActiveUsers, requireActiveUser } from "@/actions/auth";
 import { getCurrentUserConversations } from "@/actions/messages";
 import MessagesPage from "@/app/(main)/messages/_messages";
 import NavItems from "@/components/sidebar/nav-items";
+import { connectSocket } from "@/lib/socket";
 
 export default async function Messages() {
   const activeUsers = await allActiveUsers();
@@ -15,6 +17,16 @@ export default async function Messages() {
   if (!currentUser.success) {
     return;
   }
+
+  const cookieStore = await cookies();
+
+  const sessionId = cookieStore.get("session")?.value;
+
+  if (!sessionId) {
+    return null;
+  }
+
+  connectSocket(sessionId);
 
   const filteredActiveUsers = activeUsers?.filter(
     (user) => user.id !== currentUser.user.id
