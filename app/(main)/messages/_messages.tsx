@@ -66,13 +66,19 @@ export default function MessagesPage({
 
   // console.log("ALL ONLINE USERS: ", onlineUsers);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally omitted dependencies
   useEffect(() => {
     connectSocket();
 
-    // socket.on("connect", () => {
-    //   console.log("Socket connected: ", socket.id);
-    // });
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally omitted dependencies
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("Socket connected: ", socket.id);
+    });
 
     socket.on("online-users", ({ users }) => {
       setOnlineUsers(users);
