@@ -17,7 +17,7 @@ export const connectSocket = async () => {
       : "https://anoxa-server.onrender.com/api/session"
   )
     .then((res) => res.json())
-    .then((data) => data.session);
+    .then((data) => data.sessionId);
 
   socket.auth = { sessionId };
   socket.connect();
