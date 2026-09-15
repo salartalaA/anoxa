@@ -11,7 +11,7 @@ import SendMessageDialog, {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { socket } from "@/lib/socket";
+import { connectSocket, socket } from "@/lib/socket";
 import { cn } from "@/lib/utils";
 
 export interface OldMessages {
@@ -68,7 +68,7 @@ export default function MessagesPage({
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally omitted dependencies
   useEffect(() => {
-    socket.connect();
+    connectSocket();
 
     // socket.on("connect", () => {
     //   console.log("Socket connected: ", socket.id);
