@@ -4,7 +4,6 @@ import { allActiveUsers, requireActiveUser } from "@/actions/auth";
 import { getCurrentUserConversations } from "@/actions/messages";
 import MessagesPage from "@/app/(main)/messages/_messages";
 import NavItems from "@/components/sidebar/nav-items";
-import { connectSocket } from "@/lib/socket";
 
 export default async function Messages() {
   const activeUsers = await allActiveUsers();
@@ -16,8 +15,6 @@ export default async function Messages() {
   if (!currentUser.success) {
     return;
   }
-
-  connectSocket();
 
   const filteredActiveUsers = activeUsers?.filter(
     (user) => user.id !== currentUser.user.id
