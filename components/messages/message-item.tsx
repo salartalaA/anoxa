@@ -110,6 +110,8 @@ export default function MessageItem({
         isMine ? "justify-end" : "justify-start"
       )}
       ref={messageRef}
+      // biome-ignore lint/a11y/noNoninteractiveTabindex: Solves mobile problem
+      tabIndex={0}
     >
       {!isMine && (
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border font-semibold text-foreground text-xs">
@@ -165,7 +167,7 @@ export default function MessageItem({
         </div>
 
         {isMine && (
-          <div className="absolute right-12 bottom-1 hidden w-fit items-center gap-2 bg-background text-sm group-hover:flex">
+          <div className="absolute right-12 bottom-1 hidden w-fit items-center gap-2 bg-background text-sm group-focus-within:flex group-hover:flex group-active:flex">
             <button onClick={handleStartEdit} type="button">
               <Pencil
                 className={cn("text-primary", isMine ? "ml-auto" : "mr-auto")}
