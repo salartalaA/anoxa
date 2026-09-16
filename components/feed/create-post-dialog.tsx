@@ -37,18 +37,39 @@ export function CreatePostDialog() {
   const [openState, setOpenState] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
 
+  const [dimensions, setDimensions] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+
   const caption = watch("caption") ?? "";
   const image = watch("image") ?? "";
+
+  const validDimension =
+    (dimensions?.width as number) <= 503 &&
+    (dimensions?.height as number) <= 502;
 
   useEffect(() => {
     if (!image) {
       setPreview(null);
+      setDimensions(null);
       return;
     }
 
-    const objectUrl = URL.createObjectURL(image);
-
+    const objectUrl = URL.createObjectURL(image as unknown as Blob);
     setPreview(objectUrl);
+
+    const img = new window.Image();
+    img.src = objectUrl;
+    img.onload = () => {
+      setDimensions({
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+      });
+      console.log(
+        `Image Dimensions: ${img.naturalWidth} x ${img.naturalHeight}`
+      );
+    };
 
     return () => {
       URL.revokeObjectURL(objectUrl);
@@ -69,8 +90,8 @@ export function CreatePostDialog() {
     await createPost(newPost);
 
     setOpenState(false);
-
     reset();
+    setDimensions(null);
 
     toast.success("Post Created Successfully!", {
       position: "top-right",
@@ -97,7 +118,10 @@ export function CreatePostDialog() {
             <DialogDescription>
               Share a photo with other users
             </DialogDescription>
-            <span className="text-destructive">Max file size: 5MB</span>
+            <span className="text-warning">Max file size: 10MB</span>
+            <span className="text-warning">
+              Vaild Image Size: 503px X 502px (or less)
+            </span>
           </DialogHeader>
 
           <div className="mt-4 space-y-4">
@@ -117,10 +141,19 @@ export function CreatePostDialog() {
                       src={preview}
                     />
 
+                    {dimensions && (
+                      <div className="absolute bottom-2 left-2 rounded bg-black/60 px-2 py-1 text-white text-xs backdrop-blur-xs">
+                        {dimensions.width} × {dimensions.height} px
+                      </div>
+                    )}
+
                     <Button
                       className="absolute top-2 right-2 size-8"
                       disabled={isSubmitting}
-                      onClick={() => setValue("image", undefined as never)}
+                      onClick={() => {
+                        setValue("image", undefined as never);
+                        setDimensions(null);
+                      }}
                       size="icon"
                       type="button"
                       variant="secondary"
@@ -180,6 +213,12 @@ export function CreatePostDialog() {
                 placeholder="Write a caption..."
               />
 
+              {errors.caption && (
+                <p className="mt-1 text-destructive text-sm">
+                  {errors.caption.message}
+                </p>
+              )}
+
               <p className="mt-1 ml-auto text-right text-muted-foreground text-xs">
                 {caption.length}/500
               </p>
@@ -191,7 +230,7 @@ export function CreatePostDialog() {
 
             <Button
               className={isSubmitting ? "bg-primary" : ""}
-              disabled={!image || isSubmitting}
+              disabled={!image || isSubmitting || !caption || !validDimension}
               type="submit"
             >
               {isSubmitting ? (
