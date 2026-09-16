@@ -124,7 +124,11 @@ export async function getCurrentUser() {
       id: sessionId,
     },
     include: {
-      user: true,
+      user: {
+        omit: {
+          password: true,
+        },
+      },
     },
   });
 

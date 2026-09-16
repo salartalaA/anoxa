@@ -142,7 +142,7 @@ export async function getAllReportedPosts() {
   return postReports;
 }
 
-export async function updateReportStatus(
+export async function updatePostReportStatus(
   reportId: string,
   newStatus: ReportStatus
 ) {
@@ -151,6 +151,14 @@ export async function updateReportStatus(
   if (!result.success) {
     return result;
   }
+
+  const hasPerm = await hasPermission("REVIEW_REPORT");
+
+  if (!hasPerm) {
+    return null;
+  }
+
+  const currentAdmin = result.user;
 
   const existingReport = await prisma.postReport.findUnique({
     where: {
@@ -217,6 +225,14 @@ export async function updateCommentReportStatus(
   if (!result.success) {
     return result;
   }
+
+  const hasPerm = await hasPermission("REVIEW_REPORT");
+
+  if (!hasPerm) {
+    return null;
+  }
+
+  const currentAdmin = result.user;
 
   const existingReport = await prisma.commentReport.findUnique({
     where: {
