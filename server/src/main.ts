@@ -17,21 +17,6 @@ app.use(
 
 // JUST FOR TEST
 
-// app.use("/users", async (_, res) => {
-//   // console.log(res.cookie);
-
-//   const allActiveUsers = await prisma.user.findMany({
-//     where: {
-//       status: "ACTIVE",
-//     },
-//     omit: {
-//       password: true,
-//     },
-//   });
-
-//   res.status(200).json(allActiveUsers);
-// });
-
 app.use("/", (_, res) => {
   res.status(200).json({ message: "Hello friend!!" });
 });
@@ -67,8 +52,6 @@ async function getcurrentUserBySession(sessionId: string) {
 const onlineUsers = new Map<string, string>();
 
 io.on("connection", async (socket) => {
-  // console.log("Socket connected: ", socket.id);
-
   const cookies = socket.handshake.headers.cookie;
 
   const sessionId =
@@ -79,7 +62,6 @@ io.on("connection", async (socket) => {
       ?.split("=")[1];
 
   if (!sessionId) {
-    console.log("Session ID nareseed, disconnecting...");
     socket.disconnect();
     return;
   }
@@ -89,8 +71,6 @@ io.on("connection", async (socket) => {
     socket.disconnect();
     return;
   }
-
-  // console.log(`${currentUser.id} is now Online!`);
 
   onlineUsers.set(socket.id, currentUser.id);
 
@@ -103,8 +83,6 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("open-chat", async (openConversationData: OpenChat) => {
-    // console.log("BREAK");
-
     const chatUsers = [
       openConversationData.currentUserId,
       openConversationData.otherUserId,
@@ -458,11 +436,7 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("disconnect", async () => {
-    // console.log("Socket disconnected: ", socket.id);
-
     const userId = onlineUsers.get(socket.id);
-
-    // console.log(`${userId} is now Offline!`);
 
     onlineUsers.delete(socket.id);
 

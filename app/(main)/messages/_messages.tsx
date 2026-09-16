@@ -64,8 +64,6 @@ export default function MessagesPage({
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  // console.log("ALL ONLINE USERS: ", onlineUsers);
-
   useEffect(() => {
     connectSocket();
 
@@ -76,10 +74,6 @@ export default function MessagesPage({
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally omitted dependencies
   useEffect(() => {
-    socket.on("connect", () => {
-      console.log("Socket connected: ", socket.id);
-    });
-
     socket.on("online-users", ({ users }) => {
       setOnlineUsers(users);
     });
@@ -90,12 +84,10 @@ export default function MessagesPage({
     });
 
     socket.on("user-online", (userId) => {
-      // console.log("Online: ", userId);
       setOnlineUsers((prev) => [...prev, userId]);
     });
 
     socket.on("user-offline", ({ userId, lastSeen }) => {
-      // console.log("Offline: ", userId);
       setOnlineUsers((prev) => prev.filter((id) => id !== userId));
       setLastSeen((prev) => ({ ...prev, [userId]: new Date(lastSeen) }));
     });
