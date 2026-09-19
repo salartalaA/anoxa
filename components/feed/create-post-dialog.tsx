@@ -66,9 +66,6 @@ export function CreatePostDialog() {
         width: img.naturalWidth,
         height: img.naturalHeight,
       });
-      console.log(
-        `Image Dimensions: ${img.naturalWidth} x ${img.naturalHeight}`
-      );
     };
 
     return () => {
