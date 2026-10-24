@@ -8,6 +8,8 @@ The project focuses on application architecture, database relationships, access 
 
 [Live Demo](https://anoxa.vercel.app)
 
+![Screenshot](/public/screenshot-for-readme.png)
+
 ## Features
 
 - **Authentication** — User registration, login, and session management.
