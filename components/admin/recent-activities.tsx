@@ -1,5 +1,4 @@
-import { Activity, ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { Activity } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ActivityItem {
@@ -147,14 +146,6 @@ export default function RecentActivity() {
             Latest actions on the platform
           </p>
         </div>
-
-        <Link
-          className="flex items-center gap-1 font-medium text-primary text-xs"
-          href="/admin/audit-logs"
-        >
-          View all logs
-          <ArrowRight size={12} />
-        </Link>
       </div>
 
       <div className="p-6 pt-0">

@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  FileText,
-  LayoutDashboard,
-  MessageSquare,
-  ScrollText,
-  Users,
-} from "lucide-react";
+import { FileText, LayoutDashboard, MessageSquare, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -70,20 +64,6 @@ export default function AdminNavItems() {
       >
         <MessageSquare className="size-[18px] md:size-5" />
         <span className="hidden lg:inline">Comments</span>
-      </Link>
-
-      <Link
-        className={cn(
-          "flex items-center justify-center gap-2.5 rounded-lg px-2.5 py-2 font-medium text-sm transition-colors md:mt-1 md:justify-start md:gap-3 md:px-3",
-          pathname === "/admin/audit-logs"
-            ? "bg-sidebar-primary text-sidebar-primary-foreground"
-            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-        )}
-        href="/admin/audit-logs"
-        prefetch
-      >
-        <ScrollText className="size-[18px] md:size-5" />
-        <span className="hidden lg:inline">Audit Logs</span>
       </Link>
     </>
   );
