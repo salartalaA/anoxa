@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Anoxa
+
+Anoxa is a social media web application built to explore and implement common social networking features, including user authentication, posts, comments, reactions, bookmarks, user profiles, and messaging.
+
+The project focuses on application architecture, database relationships, access control, and client-server communication beyond basic CRUD operations.
+
+## Demo
+
+[Live Demo](https://anoxa.vercel.app)
+
+## Features
+
+- **Authentication** — User registration, login, and session management.
+- **Posts** — Create and interact with posts.
+- **Comments** — Comment on posts.
+- **Reactions** — React to posts.
+- **Bookmarks** — Save posts for later.
+- **User Profiles** — User-specific profiles and content.
+- **Messaging** — Messaging functionality with a separate Socket.IO backend.
+- **Access Control** — Role-based permissions.
+- **Admin Panel** — Administrative functionality for managing the application.
+
+## Tech Stack
+
+**Frontend**
+- Next.js (App Router)
+- React
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+
+**Backend and Data**
+- Node.js
+- Express
+- Socket.IO
+- Prisma ORM
+- PostgreSQL
+
+**Additional Tools**
+- bcryptjs for password hashing
+- Resend for email delivery
+
+## Architecture
+
+Anoxa uses Next.js for the web application and a separate Express server for Socket.IO-based communication.
+
+Prisma handles database access and relationships, while authentication and role-based access control are used to manage access to application features.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js
+- pnpm
+- PostgreSQL
+
+### Installation
+
+Clone the repository:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd <repository-directory>
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Install the frontend dependencies:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Configure the environment variables required by the frontend using the project's environment configuration.
 
-## Learn More
+Start the development server:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Backend Setup
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The backend is maintained in a separate `server` directory.
 
-## Deploy on Vercel
+```bash
+cd server
+pnpm install
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Configure the backend environment variables, including the database connection and any required service credentials. Generate the Prisma client and run the required database migrations according to the project configuration.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Start the backend using the development script defined in `server/package.json`.
+
+## Project Goals
+
+Anoxa was built as a practical project for working with:
+
+- Authentication and session management
+- Relational database modeling
+- Server-side data access and validation
+- Role-based access control
+- Client-server communication
+- Real-time communication with Socket.IO
+- Organizing a full-stack application
+
